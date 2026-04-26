@@ -62,9 +62,11 @@
   filter: contrast(1.05) saturate(1.1);
 }
 
-html, body {
+
+html, body, #root {
   min-height: 100%;
 }
+
 
 * {
   transition:
@@ -91,18 +93,18 @@ body {
   color-scheme: dark;
 }
 
-@theme inline {
+@theme {
   --color-background: var(--bg-base);
   --color-on-background: var(--text-primary);
   --color-primary: var(--text-primary);
   --color-surface-container-low: var(--hover-bg);
   --color-surface-container-highest: var(--border-strong);
   --color-surface-container-lowest: var(--bg-base);
+
+  /* Redefine black and white to use our brightness-controlled CSS variables */
   --color-black: var(--bg-base);
   --color-white: var(--text-primary);
-
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  
   --font-headline-lg: "Space Grotesk", sans-serif;
   --font-label-sm: "Inter", sans-serif;
   --font-body-md: "Inter", sans-serif;
@@ -122,7 +124,7 @@ body {
   .text-body-sm { font-size: 14px; line-height: 20px; font-weight: 400; }
 
   .floor-plan-grid {
-    background-image:
+    background-image: 
         linear-gradient(var(--grid-color) 1px, transparent 1px),
         linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
     background-size: 40px 40px;
@@ -204,3 +206,4 @@ body {
 .terminal-fade-in {
   animation: terminal-fade-in 260ms ease-out;
 }
+
