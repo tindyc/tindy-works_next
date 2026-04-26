@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# custom project folders (optional safety)
+tmp/
+temp/
+
+# local overrides
+*.local
+
+# macOS duplicate (safe)
+.DS_Store
