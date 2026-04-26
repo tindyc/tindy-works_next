@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark';
@@ -14,16 +16,21 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    if (savedTheme === 'light' || savedTheme === 'dark') {
-      return savedTheme;
-    }
-
-    return window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    const initialTheme = typeof document !== 'undefined' ? document.documentElement.dataset.theme : null;
+    return initialTheme === 'light' || initialTheme === 'dark' ? initialTheme : 'dark';
   });
   const [brightness, setBrightness] = useState<number>(1);
 
   useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
+    let resolvedTheme: Theme;
+    if (savedTheme === 'light' || savedTheme === 'dark') {
+      resolvedTheme = savedTheme;
+    } else {
+      resolvedTheme = window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+    setTheme(currentTheme => currentTheme === resolvedTheme ? currentTheme : resolvedTheme);
+
     const savedBrightness = localStorage.getItem('app-brightness');
     if (savedBrightness) setBrightness(parseFloat(savedBrightness));
   }, []);
@@ -59,10 +66,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     // Subtle feedback "breathe"
     document.body.style.transform = 'scale(0.99)';
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       document.body.style.transform = 'scale(1)';
     }, 150);
 
+    return () => clearTimeout(timeout);
   }, [brightness, theme]);
 
   // Auto theme adjust based on extremes (optional)

@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 
 export type WeatherCondition = 'CLEAR' | 'CLOUDY' | 'RAIN' | 'SNOW';

@@ -1,5 +1,7 @@
+"use client";
+
 import { useState, useEffect, useRef } from 'react';
-import { WeatherData } from './useWeather';
+import type { WeatherData } from './useWeather';
 
 export type PlantStage = 'seed' | 'small' | 'medium' | 'full';
 
@@ -8,10 +10,12 @@ export const usePlant = () => {
   const [lastWatered, setLastWatered] = useState<number | null>(null);
   const [harvestReady, setHarvestReady] = useState(false);
   const [lastHarvested, setLastHarvested] = useState<number | null>(null);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState<number | null>(null);
   const passiveAnchorRef = useRef<number | null>(null);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
     const saved = localStorage.getItem('tindy_plant_state');
     if (saved) {
       try {
@@ -26,11 +30,14 @@ export const usePlant = () => {
   }, []);
 
   useEffect(() => {
+    setNow(Date.now());
     const timer = setInterval(() => setNow(Date.now()), 60000);
     return () => clearInterval(timer);
   }, []);
 
   const saveState = (g: number, wateredAt: number | null, harvReady: boolean, harvestedAt: number | null) => {
+    if (typeof window === 'undefined') return;
+
     localStorage.setItem('tindy_plant_state', JSON.stringify({
       growth: g,
       lastWatered: wateredAt,
@@ -75,7 +82,7 @@ export const usePlant = () => {
 
   // passive growth: +2 per 12h window after 12h of no watering
   useEffect(() => {
-    if (!lastWatered || harvestReady || growth >= 100) return;
+    if (now === null || !lastWatered || harvestReady || growth >= 100) return;
     const hours = (now - lastWatered) / (1000 * 60 * 60);
     if (hours <= 12) return;
     const anchor = passiveAnchorRef.current ?? lastWatered;
@@ -90,7 +97,7 @@ export const usePlant = () => {
   }, [now]);
 
   let hoursSince = null;
-  if (lastWatered) {
+  if (now !== null && lastWatered) {
     hoursSince = (now - lastWatered) / (1000 * 60 * 60);
   }
 
@@ -108,7 +115,7 @@ export const usePlant = () => {
 
   let timeToNextMs = 0;
   const cooldownPeriod = 24 * 60 * 60 * 1000;
-  if (lastWatered) {
+  if (now !== null && lastWatered) {
     const timeSince = now - lastWatered;
     if (timeSince < cooldownPeriod) {
       timeToNextMs = cooldownPeriod - timeSince;
