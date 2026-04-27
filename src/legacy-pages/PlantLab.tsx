@@ -185,7 +185,7 @@ export function PlantLab() {
                 </p>
               </div>
               <div className="relative flex-1 overflow-hidden bg-[#f5f5f5]">
-                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-black/10 z-10" />
+                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-[var(--border-subtle)] z-10" />
                 <div className="absolute inset-0 overflow-hidden">
                   <div className="w-full h-full">
                     <DigitalPlant
@@ -218,7 +218,7 @@ export function PlantLab() {
                 </p>
               </div>
               <div className="relative flex-1 overflow-hidden bg-[#f5f5f5]">
-                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-black/10 z-10" />
+                <div className="absolute bottom-0 left-0 w-full h-[1px] bg-[var(--border-subtle)] z-10" />
                 <div className="absolute inset-0 overflow-hidden">
                   <div className="w-full h-full">
                     <DigitalPlant

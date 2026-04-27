@@ -1,11 +1,7 @@
 import { WeatherData } from '../hooks/useWeather';
-import { useTheme } from '../context/ThemeContext';
 import { DigitalPlant } from './DigitalPlant';
 
 export function WeatherCanvas({ plant, weather, isDay, previewTime, context = 'canvas' }: { plant: any, weather: WeatherData | null, isDay: boolean, previewTime?: string, context?: 'canvas' | 'card' }) {
-  const { theme } = useTheme();
-  const uiTheme = theme === 'light';
-
   const isClear = weather?.condition === 'CLEAR';
   const isCloudy = weather?.condition === 'CLOUDY';
   const isRain = weather?.condition === 'RAIN';
@@ -15,10 +11,9 @@ export function WeatherCanvas({ plant, weather, isDay, previewTime, context = 'c
   const bgClass = isDay ? 'bg-[#f5f5f5] text-[#111111]' : 'bg-[#0a0a0a] text-[#eeeeee]';
   const strokeClass = isDay ? 'stroke-[#111111]' : 'stroke-[#eeeeee]';
 
-  // UI overlay colours — driven by user theme preference
-  const overlayBg = uiTheme ? 'bg-white/90' : 'bg-black/90';
-  const overlayBorderClass = uiTheme ? 'border-black/10' : 'border-white/10';
-  const textClass = uiTheme ? 'text-black' : 'text-white';
+  const overlayBg = 'bg-[var(--overlay-bg)]';
+  const overlayBorderClass = 'border-[var(--border-subtle)]';
+  const textClass = 'text-[var(--text-primary)]';
 
   // Time badge — always high contrast against the scene background
   const badgeBg = isDay ? 'bg-black/80' : 'bg-white/80';

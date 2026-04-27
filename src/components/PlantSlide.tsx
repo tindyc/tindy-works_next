@@ -27,7 +27,7 @@ export const PlantSlide: React.FC<PlantSlideProps> = ({ plant, isActive, onReque
         </h3>
 
         <div
-          className={`w-full max-w-[420px] aspect-[3/4] rounded-2xl border border-[var(--border-strong)] p-8 flex items-end justify-center ${isLight ? 'bg-[#f3f3f1] shadow-[inset_0_0_40px_rgba(0,0,0,0.08)]' : 'bg-black shadow-[0_10px_40px_rgba(0,0,0,0.6)]'}`}
+          className={`w-full max-w-[420px] aspect-[3/4] rounded-2xl border border-[var(--border-strong)] p-8 flex items-end justify-center bg-[var(--bg-base)] ${isLight ? 'shadow-[inset_0_0_40px_rgba(0,0,0,0.08)]' : 'shadow-[0_10px_40px_rgba(0,0,0,0.6)]'}`}
         >
           <div
             className="w-full h-full flex items-end justify-center"
