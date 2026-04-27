@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import Script from 'next/script';
 import { SupportNav } from '@/components/layout/SupportNav';
+import { primaryCta } from '@/styles/ui';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -31,8 +33,11 @@ const steps = [
 export function DigitalCompanionship() {
   return (
     <>
-      <script
+      {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
+      <Script
+        id="digital-companionship-json-ld"
         type="application/ld+json"
+        strategy="beforeInteractive"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
@@ -56,8 +61,12 @@ export function DigitalCompanionship() {
         <section className="flex-grow px-4 py-10 md:px-8 md:py-14 lg:px-16">
           <div className="mx-auto flex max-w-5xl flex-col gap-12 md:gap-14">
 
-            <div className="flex flex-col gap-5">
-              <h2 className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
+            <section
+              role="region"
+              aria-labelledby="digital-companionship-intro-heading"
+              className="flex flex-col gap-5"
+            >
+              <h2 id="digital-companionship-intro-heading" className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
                 Gentle contact between visits
               </h2>
               <p className="text-xl text-[var(--text-secondary)] leading-relaxed">
@@ -66,10 +75,14 @@ export function DigitalCompanionship() {
               <p className="text-xl text-[var(--text-secondary)] leading-relaxed">
                 I offer simple messaging support that fits into normal life. You can request it for yourself or someone else.
               </p>
-            </div>
+            </section>
 
-            <div className="flex flex-col gap-5">
-              <h2 className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
+            <section
+              role="region"
+              aria-labelledby="digital-companionship-steps-heading"
+              className="flex flex-col gap-5"
+            >
+              <h2 id="digital-companionship-steps-heading" className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
                 How it works
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -81,10 +94,14 @@ export function DigitalCompanionship() {
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
 
-            <div className="flex flex-col gap-5">
-              <h2 className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
+            <section
+              role="region"
+              aria-labelledby="digital-companionship-messaging-heading"
+              className="flex flex-col gap-5"
+            >
+              <h2 id="digital-companionship-messaging-heading" className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
                 Messaging only
               </h2>
               <p className="text-xl text-[var(--text-secondary)] leading-relaxed">
@@ -93,10 +110,14 @@ export function DigitalCompanionship() {
               <p className="text-xl text-[var(--text-secondary)] leading-relaxed">
                 There is nothing complicated to install. I will keep the process simple.
               </p>
-            </div>
+            </section>
 
-            <div className="flex flex-col gap-5">
-              <h2 className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
+            <section
+              role="region"
+              aria-labelledby="digital-companionship-audience-heading"
+              className="flex flex-col gap-5"
+            >
+              <h2 id="digital-companionship-audience-heading" className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
                 Who this is for
               </h2>
               <ul className="flex flex-col gap-3 text-xl text-[var(--text-secondary)] leading-relaxed list-none">
@@ -113,10 +134,14 @@ export function DigitalCompanionship() {
                   <span>Carers looking for extra support between visits</span>
                 </li>
               </ul>
-            </div>
+            </section>
 
-            <div className="border border-[var(--border-strong)] bg-[var(--ui-surface)] p-6 md:p-10">
-              <h2 className="mb-4 font-display text-3xl font-semibold text-[var(--text-primary)]">
+            <section
+              role="region"
+              aria-labelledby="digital-companionship-request-heading"
+              className="border border-[var(--border-strong)] bg-[var(--ui-surface)] p-6 md:p-10"
+            >
+              <h2 id="digital-companionship-request-heading" className="mb-4 font-display text-3xl font-semibold text-[var(--text-primary)]">
                 Start regular check-ins
               </h2>
               <p className="text-xl text-[var(--text-secondary)] leading-relaxed mb-7">
@@ -141,11 +166,11 @@ export function DigitalCompanionship() {
               </p>
               <Link
                 href="/support?intent=companionship"
-                className="ui-button min-h-[56px] w-full px-8 py-5 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)] sm:w-auto"
+                className={primaryCta}
               >
                 Request check-ins
               </Link>
-            </div>
+            </section>
 
           </div>
         </section>

@@ -1,11 +1,9 @@
 import { SupportForm } from '@/features/support/forms/SupportForm';
 
 interface SupportProps {
-  searchParams: Promise<{ intent?: string }>;
+  intent?: string;
 }
 
-export async function Support({ searchParams }: SupportProps) {
-  const { intent } = await searchParams;
-
+export function Support({ intent }: SupportProps) {
   return <SupportForm initialIntent={intent} />;
 }

@@ -11,9 +11,9 @@ export const metadata: Metadata = {
 };
 
 interface PageProps {
-  searchParams: Promise<{ intent?: string }>;
+  searchParams?: { intent?: string };
 }
 
 export default function Page({ searchParams }: PageProps) {
-  return <Support searchParams={searchParams} />;
+  return <Support intent={searchParams?.intent} />;
 }

@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import Script from 'next/script';
 import { SupportNav } from '@/components/layout/SupportNav';
+import { primaryCta } from '@/styles/ui';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -31,8 +33,11 @@ const steps = [
 export function HelpWithTech() {
   return (
     <>
-      <script
+      {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
+      <Script
+        id="help-with-tech-json-ld"
         type="application/ld+json"
+        strategy="beforeInteractive"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
@@ -55,8 +60,12 @@ export function HelpWithTech() {
 
         <section className="flex-grow px-4 py-10 md:px-8 md:py-14 lg:px-16">
           <div className="mx-auto flex max-w-5xl flex-col gap-12 md:gap-14">
-            <div className="flex flex-col gap-5">
-              <h2 className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
+            <section
+              role="region"
+              aria-labelledby="help-with-tech-intro-heading"
+              className="flex flex-col gap-5"
+            >
+              <h2 id="help-with-tech-intro-heading" className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
                 Calm help, in plain language
               </h2>
               <p className="text-xl text-[var(--text-secondary)] leading-relaxed">
@@ -65,18 +74,26 @@ export function HelpWithTech() {
               <p className="text-xl text-[var(--text-secondary)] leading-relaxed">
                 I can help when something feels confusing, stuck, or unsafe. You do not need to know the right technical words.
               </p>
-            </div>
+            </section>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <section
+              role="region"
+              aria-label="Technology support areas"
+              className="grid grid-cols-1 gap-4 sm:grid-cols-3"
+            >
               {['Phone or tablet', 'Laptop or computer', 'Email or internet'].map((item) => (
                 <div key={item} className="border border-[var(--border-subtle)] bg-[var(--ui-surface)] p-6 md:p-8">
                   <p className="text-xl font-semibold text-[var(--text-primary)]">{item}</p>
                 </div>
               ))}
-            </div>
+            </section>
 
-            <div className="flex flex-col gap-5">
-              <h2 className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
+            <section
+              role="region"
+              aria-labelledby="help-with-tech-steps-heading"
+              className="flex flex-col gap-5"
+            >
+              <h2 id="help-with-tech-steps-heading" className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
                 How it works
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -88,10 +105,14 @@ export function HelpWithTech() {
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
 
-            <div className="border border-[var(--border-strong)] bg-[var(--ui-surface)] p-6 md:p-10">
-              <h2 className="mb-4 font-display text-3xl font-semibold text-[var(--text-primary)]">
+            <section
+              role="region"
+              aria-labelledby="help-with-tech-request-heading"
+              className="border border-[var(--border-strong)] bg-[var(--ui-surface)] p-6 md:p-10"
+            >
+              <h2 id="help-with-tech-request-heading" className="mb-4 font-display text-3xl font-semibold text-[var(--text-primary)]">
                 Request simple tech help
               </h2>
               <p className="text-xl text-[var(--text-secondary)] leading-relaxed mb-7">
@@ -116,11 +137,11 @@ export function HelpWithTech() {
               </p>
               <Link
                 href="/support?intent=community"
-                className="ui-button min-h-[56px] w-full px-8 py-5 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)] sm:w-auto"
+                className={primaryCta}
               >
                 Request support
               </Link>
-            </div>
+            </section>
           </div>
         </section>
 

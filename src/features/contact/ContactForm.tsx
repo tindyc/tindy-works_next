@@ -4,6 +4,8 @@ import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { Copy, ExternalLink, Mail } from 'lucide-react';
 import { SupportNav } from '@/components/layout/SupportNav';
+import { inputClassName } from '@/styles/forms';
+import { primaryCta, primaryCtaBlock, secondaryCta } from '@/styles/ui';
 
 type Errors = {
   name?: string;
@@ -12,8 +14,9 @@ type Errors = {
 };
 
 const SUBMISSION_RATE_LIMIT_MS = 30_000;
-const MIN_SUBMISSION_TIME_MS = 2_000;
 const LAST_SUBMISSION_KEY = 'contact-last-submission';
+const ctaRowClassName =
+  'flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:gap-4';
 
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
@@ -33,17 +36,24 @@ function validate(name: string, email: string, message: string): Errors {
   return errors;
 }
 
-function inputClassName(hasError: boolean) {
-  return `min-h-[56px] w-full border bg-[var(--bg-base)] px-4 py-4 text-base text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--text-primary)] ${
-    hasError ? 'border-[var(--status-danger)]' : 'border-[var(--border-strong)]'
-  }`;
-}
-
-function FieldError({ id, message }: { id: string; message?: string }) {
+function FieldError({
+  id,
+  message,
+  assertive = false,
+}: {
+  id: string;
+  message?: string;
+  assertive?: boolean;
+}) {
   if (!message) return null;
 
   return (
-    <p id={id} className="mt-3 text-base text-[var(--status-danger)]" role="alert">
+    <p
+      id={id}
+      className="mt-3 text-base text-[var(--status-danger)]"
+      role="alert"
+      aria-live={assertive ? 'assertive' : undefined}
+    >
       {message}
     </p>
   );
@@ -54,7 +64,6 @@ export function ContactForm() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [company, setCompany] = useState('');
-  const [formStartTime] = useState(() => Date.now());
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -78,12 +87,13 @@ export function ContactForm() {
     setSubmitError('');
 
     if (company.trim()) return;
-    if (Object.keys(errors).length > 0 || isSubmitting) return;
-
-    if (Date.now() - formStartTime < MIN_SUBMISSION_TIME_MS) {
-      setSubmitError('Please take a moment to review your message before sending it.');
+    if (Object.keys(errors).length > 0) {
+      const firstErrorField = Object.keys(errors)[0];
+      const el = document.getElementById(`contact-${firstErrorField}`);
+      el?.focus();
       return;
     }
+    if (isSubmitting) return;
 
     const lastSubmission = window.localStorage.getItem(LAST_SUBMISSION_KEY);
     if (lastSubmission && Date.now() - Number(lastSubmission) < SUBMISSION_RATE_LIMIT_MS) {
@@ -103,7 +113,6 @@ export function ContactForm() {
           email,
           message,
           company,
-          formElapsedMs: String(Date.now() - formStartTime),
           metadata: '{}',
         }),
       });
@@ -160,7 +169,7 @@ export function ContactForm() {
                 <p className="mt-4 max-w-2xl text-lg leading-relaxed text-[var(--text-secondary)]">
                   Thanks. I&apos;ll get back to you soon.
                 </p>
-                <Link href="/reception" className="ui-button mt-8 min-h-[56px] px-6 py-4 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                <Link href="/reception" className={primaryCtaBlock}>
                   Back to reception
                 </Link>
               </div>
@@ -193,7 +202,8 @@ export function ContactForm() {
                       value={name}
                       onChange={(event) => setName(event.target.value)}
                       onBlur={() => setTouched((current) => ({ ...current, name: true }))}
-                      aria-describedby="contact-name-error"
+                      aria-describedby={showError('name') && errors.name ? 'contact-name-error' : undefined}
+                      aria-invalid={Boolean(errors.name)}
                       className={inputClassName(showError('name') && Boolean(errors.name))}
                     />
                     <FieldError id="contact-name-error" message={showError('name') ? errors.name : ''} />
@@ -211,7 +221,8 @@ export function ContactForm() {
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       onBlur={() => setTouched((current) => ({ ...current, email: true }))}
-                      aria-describedby="contact-email-error"
+                      aria-describedby={showError('email') && errors.email ? 'contact-email-error' : undefined}
+                      aria-invalid={Boolean(errors.email)}
                       className={inputClassName(showError('email') && Boolean(errors.email))}
                     />
                     <FieldError id="contact-email-error" message={showError('email') ? errors.email : ''} />
@@ -229,23 +240,24 @@ export function ContactForm() {
                     onBlur={() => setTouched((current) => ({ ...current, message: true }))}
                     rows={6}
                     minLength={10}
-                    aria-describedby="contact-message-error"
+                    aria-describedby={showError('message') && errors.message ? 'contact-message-error' : undefined}
+                    aria-invalid={Boolean(errors.message)}
                     className={`${inputClassName(showError('message') && Boolean(errors.message))} min-h-[180px] resize-y`}
                   />
                   <FieldError id="contact-message-error" message={showError('message') ? errors.message : ''} />
                 </div>
 
-                <div className="flex flex-col gap-4 border-t border-[var(--border-subtle)] pt-6 md:flex-row md:items-center md:justify-between">
+                <div className={`${ctaRowClassName} border-t border-[var(--border-subtle)] pt-6`}>
                   <div className="max-w-xl">
                     <p className="text-base leading-relaxed text-[var(--text-secondary)]">
                       I&apos;ll only use these details to reply.
                     </p>
-                    <FieldError id="contact-submit-error" message={submitError} />
+                    <FieldError id="contact-submit-error" message={submitError} assertive />
                   </div>
                   <button
                     type="submit"
                     disabled={!canSubmit}
-                    className="ui-button min-h-[56px] w-full px-8 py-4 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)] md:w-auto"
+                    className={primaryCta}
                   >
                     {isSubmitting ? 'Sending...' : 'Send message'}
                   </button>
@@ -269,7 +281,7 @@ export function ContactForm() {
                     <Mail className="h-5 w-5 shrink-0" />
                     <span>{directEmail}</span>
                   </a>
-                  <button type="button" onClick={handleCopyEmail} className="ui-button min-h-[56px] w-full px-5 py-3 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                  <button type="button" onClick={handleCopyEmail} className={secondaryCta}>
                     <Copy className="h-5 w-5" />
                     {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Use email link' : 'Copy email'}
                   </button>
@@ -279,13 +291,13 @@ export function ContactForm() {
               {(linkedInUrl || githubUrl) ? (
                 <div className="mt-5 grid gap-3">
                   {linkedInUrl ? (
-                    <a href={linkedInUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[56px] items-center gap-3 border border-[var(--border-subtle)] px-4 py-3 text-base text-[var(--text-primary)] hover:bg-[var(--hover-bg)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                    <a href={linkedInUrl} target="_blank" rel="noreferrer" className={secondaryCta}>
                       <ExternalLink className="h-5 w-5" />
                       LinkedIn
                     </a>
                   ) : null}
                   {githubUrl ? (
-                    <a href={githubUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[56px] items-center gap-3 border border-[var(--border-subtle)] px-4 py-3 text-base text-[var(--text-primary)] hover:bg-[var(--hover-bg)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                    <a href={githubUrl} target="_blank" rel="noreferrer" className={secondaryCta}>
                       <ExternalLink className="h-5 w-5" />
                       GitHub
                     </a>

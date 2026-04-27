@@ -1,139 +1,68 @@
-type ContactPayload = Record<string, unknown>;
-
-type RateLimitRecord = {
-  count: number;
-  windowStart: number;
-  lastFingerprint: string;
-  lastTimestamp: number;
-};
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const RATE_LIMIT_WINDOW_MS = 30_000;
-const RATE_LIMIT_MAX = 1;
-const MIN_SUBMISSION_TIME_MS = 2_000;
-const rateLimitStore = new Map<string, RateLimitRecord>();
-
-function getClientIp(request: Request) {
-  const forwarded = request.headers.get('x-forwarded-for');
-  if (forwarded) {
-    return forwarded.split(',')[0]?.trim() || 'unknown';
-  }
-
-  return request.headers.get('x-real-ip') ?? 'unknown';
-}
-
-function sanitizeValue(rawValue: unknown) {
-  if (typeof rawValue !== 'string') {
-    return '';
-  }
-
-  return rawValue
-    .trim()
-    .replace(/[<>`]/g, '')
-    .replace(/\s+/g, ' ');
-}
-
-function sanitizePayload(payload: ContactPayload) {
-  const sanitized: Record<string, string> = {};
-
-  for (const [key, value] of Object.entries(payload)) {
-    sanitized[key] = sanitizeValue(value);
-  }
-
-  return sanitized;
-}
-
-function enforceRateLimit(clientIp: string, fingerprint: string) {
-  const now = Date.now();
-  const existing = rateLimitStore.get(clientIp);
-
-  if (!existing || now - existing.windowStart > RATE_LIMIT_WINDOW_MS) {
-    rateLimitStore.set(clientIp, {
-      count: 1,
-      windowStart: now,
-      lastFingerprint: fingerprint,
-      lastTimestamp: now,
-    });
-    return null;
-  }
-
-  if (now - existing.lastTimestamp < RATE_LIMIT_WINDOW_MS && existing.lastFingerprint === fingerprint) {
-    return 'Duplicate submission detected. Please wait before trying again.';
-  }
-
-  if (existing.count >= RATE_LIMIT_MAX) {
-    return 'Too many requests. Please wait and try again.';
-  }
-
-  existing.count += 1;
-  existing.lastFingerprint = fingerprint;
-  existing.lastTimestamp = now;
-  rateLimitStore.set(clientIp, existing);
-  return null;
-}
-
-function validatePayload(payload: Record<string, string>) {
-  if (payload.company) {
-    return 'Spam detected.';
-  }
-
-  const formElapsedMs = Number(payload.formElapsedMs);
-  if (!Number.isFinite(formElapsedMs) || formElapsedMs < MIN_SUBMISSION_TIME_MS) {
-    return 'Please take a moment to review your message before sending it.';
-  }
-
-  if (!payload.name) {
-    return 'Name is required.';
-  }
-
-  if (!payload.email) {
-    return 'Email is required.';
-  }
-
-  if (!EMAIL_REGEX.test(payload.email)) {
-    return 'Email is invalid.';
-  }
-
-  if (!payload.message || payload.message.length < 10) {
-    return 'Message must be at least 10 characters.';
-  }
-
-  if (/^(.)\1{4,}$/.test(payload.message) || /^[^a-zA-Z]*$/.test(payload.message)) {
-    return 'Please write a short message with enough context.';
-  }
-
-  return null;
-}
+import {
+  createFingerprint,
+  createPreview,
+  createRequestId,
+  createUnknownIpKey,
+  enforceIpRateLimit,
+  enforceRateLimit,
+  extractContact,
+  getNormalizedContent,
+  getClientIp,
+  sanitizePayload,
+  validateContactPayload,
+} from '@/lib/api-utils';
 
 export async function POST(request: Request) {
-  let rawPayload: ContactPayload;
+  let rawPayload: unknown = null;
 
   try {
-    rawPayload = (await request.json()) as ContactPayload;
+    rawPayload = await request.json();
   } catch {
     return Response.json({ error: 'Invalid JSON payload.' }, { status: 400 });
   }
 
   const payload = sanitizePayload(rawPayload);
-  const validationError = validatePayload(payload);
+  if (!Object.values(payload).some(Boolean)) {
+    return Response.json({ error: 'Invalid submission.' }, { status: 400 });
+  }
+
+  const contact = extractContact(payload);
+  const content = getNormalizedContent(payload);
+  const validationError = validateContactPayload(payload, contact, content);
   if (validationError) {
     return Response.json({ error: validationError }, { status: 400 });
   }
 
-  const rateLimitError = enforceRateLimit(
-    getClientIp(request),
-    [payload.email, payload.name, payload.message].join('|'),
-  );
+  const fingerprint = createFingerprint(payload, contact, content);
+  const clientIp = getClientIp(request);
+  const safeIp = clientIp === 'unknown'
+    ? createUnknownIpKey(fingerprint, contact)
+    : clientIp;
+
+  const ipError = enforceIpRateLimit(safeIp);
+  if (ipError) {
+    return Response.json({ error: ipError }, { status: 429 });
+  }
+
+  const rateLimitError = enforceRateLimit(safeIp, fingerprint);
   if (rateLimitError) {
     return Response.json({ error: rateLimitError }, { status: 429 });
   }
 
-  return Response.json(
-    {
-      ok: true,
-      requestId: `contact_${Math.random().toString(36).slice(2, 10)}`,
-      message: 'Contact message received.',
-    },
-    { status: 200 },
-  );
+  const requestId = createRequestId();
+  const preview = createPreview(content);
+
+  console.log('NEW_SUBMISSION', {
+    requestId,
+    type: 'contact',
+    contact: contact.contactValue,
+    ipType: clientIp === 'unknown' ? 'unknown' : 'real',
+    preview,
+    timestamp: new Date().toISOString(),
+  });
+
+  return Response.json({
+    ok: true,
+    requestId,
+  });
 }

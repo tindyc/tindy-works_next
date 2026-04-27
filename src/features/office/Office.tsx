@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { primaryCtaMono } from "@/styles/ui";
 
 const projects = [
   { id: "101", title: "Private Hire & Airport Transfer Platform", tag: "Web Application / Booking System" },
@@ -216,7 +217,7 @@ export function Office() {
           <p className="text-[var(--text-secondary)] font-sans text-sm leading-relaxed max-w-2xl mb-8">
             I enjoy building clean, practical websites and systems for small businesses and personal projects. I also like helping people automate parts of their work to save time and reduce manual effort. If you have something in mind, feel free to reach out.
           </p>
-          <Link href="/contact" className="ui-button font-mono text-xs uppercase tracking-widest">
+          <Link href="/contact" className={primaryCtaMono}>
             Start a Project
           </Link>
         </div>

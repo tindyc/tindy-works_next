@@ -1,5 +1,7 @@
 import Link from 'next/link';
+import Script from 'next/script';
 import { SupportNav } from '@/components/layout/SupportNav';
+import { primaryCta } from '@/styles/ui';
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -31,8 +33,11 @@ const steps = [
 export function TechSupportServices() {
   return (
     <>
-      <script
+      {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
+      <Script
+        id="tech-support-services-json-ld"
         type="application/ld+json"
+        strategy="beforeInteractive"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
 
@@ -56,8 +61,12 @@ export function TechSupportServices() {
         <section className="flex-grow px-4 py-10 md:px-8 md:py-14 lg:px-16">
           <div className="mx-auto flex max-w-5xl flex-col gap-12 md:gap-16">
 
-            <div className="flex flex-col gap-4">
-              <h2 className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
+            <section
+              role="region"
+              aria-labelledby="tech-support-help-heading"
+              className="flex flex-col gap-4"
+            >
+              <h2 id="tech-support-help-heading" className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
                 What I can help with
               </h2>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -94,10 +103,14 @@ export function TechSupportServices() {
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
 
-            <div className="flex flex-col gap-4">
-              <h2 className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
+            <section
+              role="region"
+              aria-labelledby="tech-support-steps-heading"
+              className="flex flex-col gap-4"
+            >
+              <h2 id="tech-support-steps-heading" className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
                 How it works
               </h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -109,10 +122,14 @@ export function TechSupportServices() {
                   </div>
                 ))}
               </div>
-            </div>
+            </section>
 
-            <div className="border border-[var(--border-strong)] bg-[var(--ui-surface)] p-6 md:p-8">
-              <h2 className="mb-4 font-display text-3xl font-semibold text-[var(--text-primary)]">
+            <section
+              role="region"
+              aria-labelledby="tech-support-request-heading"
+              className="border border-[var(--border-strong)] bg-[var(--ui-surface)] p-6 md:p-8"
+            >
+              <h2 id="tech-support-request-heading" className="mb-4 font-display text-3xl font-semibold text-[var(--text-primary)]">
                 Start a project request
               </h2>
               <p className="mb-6 text-base leading-relaxed text-[var(--text-secondary)] md:text-lg">
@@ -137,11 +154,11 @@ export function TechSupportServices() {
               </p>
               <Link
                 href="/support?intent=client"
-                className="ui-button min-h-[56px] w-full px-8 py-4 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)] sm:w-auto"
+                className={primaryCta}
               >
                 Start a project request
               </Link>
-            </div>
+            </section>
 
           </div>
         </section>
