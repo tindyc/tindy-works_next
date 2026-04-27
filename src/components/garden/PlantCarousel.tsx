@@ -188,11 +188,11 @@ export function PlantCarousel() {
       )}
 
       {/* CSS to hide scrollbar */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style>{`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
-      `}} />
+      `}</style>
     </div>
   );
 }

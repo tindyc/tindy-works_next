@@ -1,5 +1,5 @@
-import ReceptionPageClient from "@/components/ReceptionPageClient";
+import { ReceptionView } from "@/components/reception/ReceptionView";
 
 export default function ReceptionPage() {
-  return <ReceptionPageClient />;
+  return <ReceptionView />;
 }

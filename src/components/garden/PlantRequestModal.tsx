@@ -41,7 +41,7 @@ export function PlantRequestModal({ plant, onClose }: PlantRequestModalProps) {
         <div className="mb-6 sm:mb-8 pr-9">
           <h2 className="font-headline-sm text-2xl text-[var(--text-primary)] mb-2">Request a Plant</h2>
           <p className="text-[var(--text-secondary)] font-body-sm text-sm">
-            You've chosen the <span className="text-[var(--text-primary)] font-medium">{plant.name}</span>. 
+            You&apos;ve chosen the <span className="text-[var(--text-primary)] font-medium">{plant.name}</span>. 
             Complete the terminal prompts to initiate the growth process.
           </p>
         </div>

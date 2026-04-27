@@ -6,6 +6,16 @@ import { PlantStats } from './PlantStats';
 
 type PlantState = ReturnType<typeof usePlant>;
 
+function renderWeatherIcon(weather: WeatherData) {
+  switch(weather.condition) {
+    case 'RAIN': return <CloudRain className="w-8 h-8" strokeWidth={1} />;
+    case 'CLEAR': return <Sun className="w-8 h-8" strokeWidth={1} />;
+    case 'CLOUDY': return <Cloud className="w-8 h-8" strokeWidth={1} />;
+    case 'SNOW': return <Snowflake className="w-8 h-8" strokeWidth={1} />;
+    default: return <Sun className="w-8 h-8" strokeWidth={1} />;
+  }
+}
+
 export function GardenSidebar({ plant, weather }: { plant: PlantState, weather: WeatherData | null }) {
   const isRaining = weather?.condition === 'RAIN';
 
@@ -15,17 +25,6 @@ export function GardenSidebar({ plant, weather }: { plant: PlantState, weather: 
     const h = Math.floor(totalMins / 60);
     const m = totalMins % 60;
     return `${h.toString().padStart(2, '0')}H ${m.toString().padStart(2, '0')}M`;
-  };
-
-  const WeatherIcon = () => {
-    if (!weather) return null;
-    switch(weather.condition) {
-      case 'RAIN': return <CloudRain className="w-8 h-8" strokeWidth={1} />;
-      case 'CLEAR': return <Sun className="w-8 h-8" strokeWidth={1} />;
-      case 'CLOUDY': return <Cloud className="w-8 h-8" strokeWidth={1} />;
-      case 'SNOW': return <Snowflake className="w-8 h-8" strokeWidth={1} />;
-      default: return <Sun className="w-8 h-8" strokeWidth={1} />;
-    }
   };
 
   return (
@@ -72,7 +71,7 @@ export function GardenSidebar({ plant, weather }: { plant: PlantState, weather: 
         
         {weather ? (
           <div className="flex items-start space-x-4">
-            <div className="text-[var(--text-primary)]"><WeatherIcon /></div>
+            <div className="text-[var(--text-primary)]">{renderWeatherIcon(weather)}</div>
             <div>
               <p className="font-sans text-xs font-semibold tracking-widest text-[var(--text-primary)] mb-1 uppercase">{weather.description}</p>
               <p className="text-sm text-[var(--text-muted)]">LONDON, UK</p>

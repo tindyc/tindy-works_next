@@ -20,7 +20,7 @@ const ROUTES = {
 
 const COMMAND_KEYS = Object.keys(ROUTES) as Array<keyof typeof ROUTES>;
 
-export function NotFound() {
+export function NotFoundView() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [input, setInput] = useState('');

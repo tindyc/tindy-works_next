@@ -1,9 +1,10 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { type PlantDef } from './PlantCarousel';
 import { TerminalForm } from '@/components/TerminalForm';
 import {
   type TerminalFlowStep,
   type TerminalFormData,
+  type TerminalCustomValidation,
   type TerminalValidationRule,
   terminalValidators,
 } from '@/hooks/useTerminalFlow';
@@ -20,6 +21,13 @@ type PlantRequestContext = {
 };
 
 const HUMAN_CHALLENGE_WORDS = ['monstera', 'philodendron', 'calathea', 'maranta', 'pothos'] as const;
+
+function getChallengeWord(seed: string) {
+  const index = seed
+    .split('')
+    .reduce((total, character) => total + character.charCodeAt(0), 0) % HUMAN_CHALLENGE_WORDS.length;
+  return HUMAN_CHALLENGE_WORDS[index];
+}
 
 function normalizeOwner(value: string) {
   const normalized = value.trim().toLowerCase();
@@ -87,10 +95,7 @@ const optionalPhoneValidation: TerminalValidationRule<PlantRequestContext> = ({ 
 };
 
 export function PlantRequestTerminal({ plant, onComplete }: PlantRequestTerminalProps) {
-  const challengeWord = useMemo(() => {
-    const index = Math.floor(Math.random() * HUMAN_CHALLENGE_WORDS.length);
-    return HUMAN_CHALLENGE_WORDS[index];
-  }, [plant.id]);
+  const challengeWord = useMemo(() => getChallengeWord(plant.id), [plant.id]);
 
   const context = useMemo<PlantRequestContext>(
     () => ({
@@ -101,7 +106,7 @@ export function PlantRequestTerminal({ plant, onComplete }: PlantRequestTerminal
     [challengeWord, plant],
   );
 
-  const challengeValidation: TerminalValidationRule<PlantRequestContext> = ({ value, context: stepContext }) => {
+  const challengeValidation = useCallback<TerminalCustomValidation<PlantRequestContext>>(({ value, context: stepContext }) => {
     const answer = value.trim().toLowerCase();
     const expected = stepContext?.challengeExpected;
 
@@ -110,7 +115,7 @@ export function PlantRequestTerminal({ plant, onComplete }: PlantRequestTerminal
     }
 
     return answer === expected ? null : 'Challenge failed. Please type the correct last 3 letters.';
-  };
+  }, []);
 
   const flow = useMemo<Array<TerminalFlowStep<PlantRequestContext>>>(
     () => [

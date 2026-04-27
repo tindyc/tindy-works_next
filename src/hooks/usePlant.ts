@@ -3,12 +3,14 @@ import { WeatherData } from './useWeather';
 
 export type PlantStage = 'seed' | 'small' | 'medium' | 'full';
 
+const getTimestamp = () => Date.now();
+
 export const usePlant = () => {
   const [growth, setGrowth] = useState(0);
   const [lastWatered, setLastWatered] = useState<number | null>(null);
   const [harvestReady, setHarvestReady] = useState(false);
   const [lastHarvested, setLastHarvested] = useState<number | null>(null);
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(getTimestamp);
   const passiveAnchorRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -16,17 +18,19 @@ export const usePlant = () => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // backward compat: old saves used petalCount, map it to growth
-        setGrowth(parsed.growth ?? (parsed.petalCount ? Math.min(parsed.petalCount * 20, 100) : 0));
-        setLastWatered(parsed.lastWatered || null);
-        setHarvestReady(parsed.harvestReady ?? false);
-        setLastHarvested(parsed.lastHarvested || null);
-      } catch(e) {}
+        window.setTimeout(() => {
+          // backward compat: old saves used petalCount, map it to growth
+          setGrowth(parsed.growth ?? (parsed.petalCount ? Math.min(parsed.petalCount * 20, 100) : 0));
+          setLastWatered(parsed.lastWatered || null);
+          setHarvestReady(parsed.harvestReady ?? false);
+          setLastHarvested(parsed.lastHarvested || null);
+        }, 0);
+      } catch {}
     }
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 60000);
+    const timer = setInterval(() => setNow(getTimestamp()), 60000);
     return () => clearInterval(timer);
   }, []);
 
@@ -41,7 +45,7 @@ export const usePlant = () => {
 
   const waterPlant = (weather?: WeatherData) => {
     if (weather?.condition === 'RAIN') return;
-    const currentTime = Date.now();
+    const currentTime = getTimestamp();
     if (!lastWatered || (currentTime - lastWatered) >= 24 * 60 * 60 * 1000) {
       let growthIncrease = 15; // ~5–6 waterings to reach full over ~1 week
 
@@ -64,7 +68,7 @@ export const usePlant = () => {
 
   const harvestPlant = () => {
     if (!harvestReady) return;
-    const currentTime = Date.now();
+    const currentTime = getTimestamp();
     const resetGrowth = 0;
     setGrowth(resetGrowth);
     setHarvestReady(false);
@@ -87,7 +91,7 @@ export const usePlant = () => {
       if (newG >= 100) setHarvestReady(true);
       return newG;
     });
-  }, [now]);
+  }, [growth, harvestReady, lastWatered, now]);
 
   let hoursSince = null;
   if (lastWatered) {

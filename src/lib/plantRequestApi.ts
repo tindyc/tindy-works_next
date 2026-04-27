@@ -1,4 +1,4 @@
-import { type TerminalFormData } from '../hooks/useTerminalFlow';
+import { type TerminalFormData } from '@/hooks/useTerminalFlow';
 
 export async function submitPlantRequest(payload: TerminalFormData) {
   const response = await fetch('/api/plant-request', {

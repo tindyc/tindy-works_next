@@ -2,7 +2,16 @@ import { WeatherData } from '@/hooks/useWeather';
 import { useTheme } from '@/context/ThemeContext';
 import { DigitalPlant } from './DigitalPlant';
 
-export function WeatherCanvas({ plant, weather, isDay, previewTime, context = 'canvas' }: { plant: any, weather: WeatherData | null, isDay: boolean, previewTime?: string, context?: 'canvas' | 'card' }) {
+type PlantView = {
+  growth: number;
+  leafCount: number;
+  isWilted: boolean;
+  harvestReady: boolean;
+  hydration: number;
+  status?: 'DORMANT' | 'OPTIMAL' | 'WILTED';
+};
+
+export function WeatherCanvas({ plant, weather, isDay, previewTime, context = 'canvas' }: { plant: PlantView, weather: WeatherData | null, isDay: boolean, previewTime?: string, context?: 'canvas' | 'card' }) {
   const { theme } = useTheme();
   const uiTheme = theme === 'light';
 

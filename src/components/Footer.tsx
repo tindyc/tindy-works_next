@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export function Footer() {
   return (
@@ -7,9 +8,9 @@ export function Footer() {
           ©2024_TINDY_WORKS_ALL_RIGHTS_RESERVED
       </div>
       <div className="flex gap-6">
-        <a className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors duration-300" href="#">LEGAL</a>
-        <a className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors duration-300" href="#">INDEX</a>
-        <a className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors duration-300" href="#">MANIFESTO</a>
+        <Link className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors duration-300" href="/contact">LEGAL</Link>
+        <Link className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors duration-300" href="/">INDEX</Link>
+        <Link className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors duration-300" href="/office">MANIFESTO</Link>
       </div>
     </footer>
   );

@@ -5,7 +5,7 @@ import {
   type TerminalFlowStep,
   type TerminalFormData,
   useTerminalFlow,
-} from '../hooks/useTerminalFlow';
+} from '@/hooks/useTerminalFlow';
 
 type TerminalFormProps<TContext = Record<string, unknown>> = {
   flow: Array<TerminalFlowStep<TContext>>;

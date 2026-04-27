@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Copy, ExternalLink, Mail } from 'lucide-react';
 import Link from 'next/link';
 import { SupportNav } from '@/components/SupportNav';
@@ -20,6 +20,8 @@ const SUBMISSION_RATE_LIMIT_MS = 30_000;
 const MIN_SUBMISSION_TIME_MS = 2_000;
 const LAST_SUBMISSION_KEY = 'contact-last-submission';
 const TOPIC_OPTIONS: TopicOption[] = ['Work opportunity', 'Collaboration', 'General question'];
+
+const getTimestamp = () => Date.now();
 
 const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
@@ -75,17 +77,18 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-export function ContactPage() {
+export function ContactView() {
   const [topic, setTopic] = useState<TopicOption | ''>('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [company, setCompany] = useState('');
-  const [formStartTime, setFormStartTime] = useState(() => Date.now());
+  const [formStartTime] = useState(getTimestamp);
   const [touchedFields, setTouchedFields] = useState<ContactTouched>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submissionError, setSubmissionError] = useState('');
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
 
   const directEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() ?? '';
@@ -108,7 +111,10 @@ export function ContactPage() {
 
   const canSubmit = Object.keys(validationErrors).length === 0 && !isSubmitting;
 
-  const shouldShowError = (field: keyof ContactErrors) => submitAttempted || touchedFields[field];
+  const shouldShowError = useCallback(
+    (field: keyof ContactErrors) => submitAttempted || touchedFields[field],
+    [submitAttempted, touchedFields],
+  );
 
   const markTouched = (field: string) => {
     setTouchedFields((current) => ({ ...current, [field]: true }));
@@ -117,6 +123,7 @@ export function ContactPage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitAttempted(true);
+    setSubmissionError('');
 
     if (Object.keys(validationErrors).length > 0 || isSubmitting) {
       return;
@@ -126,22 +133,46 @@ export function ContactPage() {
       return;
     }
 
-    if (Date.now() - formStartTime < MIN_SUBMISSION_TIME_MS) {
+    if (getTimestamp() - formStartTime < MIN_SUBMISSION_TIME_MS) {
       setTouchedFields((current) => ({ ...current, submit: true }));
       return;
     }
 
     const lastSubmission = window.localStorage.getItem(LAST_SUBMISSION_KEY);
-    if (lastSubmission && Date.now() - Number(lastSubmission) < SUBMISSION_RATE_LIMIT_MS) {
+    if (lastSubmission && getTimestamp() - Number(lastSubmission) < SUBMISSION_RATE_LIMIT_MS) {
       setTouchedFields((current) => ({ ...current, submit: true }));
       return;
     }
 
     setIsSubmitting(true);
-    await new Promise((resolve) => window.setTimeout(resolve, 500));
-    window.localStorage.setItem(LAST_SUBMISSION_KEY, String(Date.now()));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          topic,
+          name,
+          email,
+          message,
+          company,
+        }),
+      });
+      const body = (await response.json()) as { error?: string };
+
+      if (!response.ok) {
+        throw new Error(body.error ?? 'Unable to send your message right now.');
+      }
+
+      window.localStorage.setItem(LAST_SUBMISSION_KEY, String(getTimestamp()));
+      setIsSubmitted(true);
+    } catch (error) {
+      setSubmissionError(error instanceof Error ? error.message : 'Unable to send your message right now.');
+      setTouchedFields((current) => ({ ...current, submit: true }));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const submitErrorMessage = useMemo(() => {
@@ -149,17 +180,21 @@ export function ContactPage() {
       return '';
     }
 
-    if (Date.now() - formStartTime < MIN_SUBMISSION_TIME_MS) {
+    if (submissionError) {
+      return submissionError;
+    }
+
+    if (getTimestamp() - formStartTime < MIN_SUBMISSION_TIME_MS) {
       return 'Please take a moment to review your message before sending it.';
     }
 
     const lastSubmission = window.localStorage.getItem(LAST_SUBMISSION_KEY);
-    if (lastSubmission && Date.now() - Number(lastSubmission) < SUBMISSION_RATE_LIMIT_MS) {
+    if (lastSubmission && getTimestamp() - Number(lastSubmission) < SUBMISSION_RATE_LIMIT_MS) {
       return 'Please wait a short moment before sending another message.';
     }
 
     return '';
-  }, [formStartTime, submitAttempted, touchedFields]);
+  }, [formStartTime, shouldShowError, submissionError]);
 
   const handleCopyEmail = async () => {
     if (!directEmail) {

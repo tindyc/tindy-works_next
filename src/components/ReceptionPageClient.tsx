@@ -1,9 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Mail, Monitor, PenTool, Phone, ShieldCheck, UserRound } from 'lucide-react';
-import { Layout } from '@/components/Layout';
 import { SupportNav } from '@/components/SupportNav';
 
 type Step = 'device' | 'details' | 'confirmation';
@@ -48,6 +47,8 @@ type TouchedFields = Record<string, boolean>;
 const SUBMISSION_RATE_LIMIT_MS = 30_000;
 const MIN_SUBMISSION_TIME_MS = 2_000;
 const LAST_SUBMISSION_KEY = 'reception-last-submission';
+
+const getTimestamp = () => Date.now();
 
 const deviceOptions: Array<{
   value: DeviceOption;
@@ -202,12 +203,13 @@ export default function ReceptionPage() {
     contactValue: '',
     note: '',
   });
-  const [formStartTime, setFormStartTime] = useState(() => Date.now());
+  const [formStartTime, setFormStartTime] = useState(getTimestamp);
   const [company, setCompany] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [touchedFields, setTouchedFields] = useState<TouchedFields>({});
   const [requestSummary, setRequestSummary] = useState<RequestSummary | null>(null);
+  const [submissionError, setSubmissionError] = useState('');
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -234,11 +236,14 @@ export default function ReceptionPage() {
 
   const canSubmit = Boolean(selectedDevice) && Object.keys(validationErrors).length === 0 && !isSubmitting;
 
-  const shouldShowError = (field: keyof ValidationErrors) => submitAttempted || touchedFields[field];
+  const shouldShowError = useCallback(
+    (field: keyof ValidationErrors) => submitAttempted || touchedFields[field],
+    [submitAttempted, touchedFields],
+  );
 
   const handleDeviceSelect = (device: DeviceOption) => {
     setSelectedDevice(device);
-    setFormStartTime(Date.now());
+    setFormStartTime(getTimestamp());
     setStep('details');
   };
 
@@ -267,49 +272,82 @@ export default function ReceptionPage() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSubmitAttempted(true);
+    setSubmissionError('');
 
     if (!selectedDevice || Object.keys(validationErrors).length > 0 || isSubmitting) return;
     if (company.trim()) return;
 
-    if (Date.now() - formStartTime < MIN_SUBMISSION_TIME_MS) {
+    if (getTimestamp() - formStartTime < MIN_SUBMISSION_TIME_MS) {
       setTouchedFields((current) => ({ ...current, submit: true }));
       return;
     }
 
     const lastSubmission = window.localStorage.getItem(LAST_SUBMISSION_KEY);
-    if (lastSubmission && Date.now() - Number(lastSubmission) < SUBMISSION_RATE_LIMIT_MS) {
+    if (lastSubmission && getTimestamp() - Number(lastSubmission) < SUBMISSION_RATE_LIMIT_MS) {
       setTouchedFields((current) => ({ ...current, submit: true }));
       return;
     }
 
     setIsSubmitting(true);
-    await new Promise((resolve) => window.setTimeout(resolve, 500));
-    window.localStorage.setItem(LAST_SUBMISSION_KEY, String(Date.now()));
+    try {
+      const response = await fetch('/api/support-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          device: selectedDevice,
+          deviceLabel: selectedDeviceLabel,
+          description,
+          contactMethod,
+          contactValue,
+          name,
+          isOnBehalf: isOnBehalf ? 'yes' : 'no',
+          otherPersonName: otherPerson.name,
+          relationship: otherPerson.relationship,
+          otherContactTarget: otherPerson.contactTarget,
+          otherContactMethod: otherPerson.contactMethod ?? '',
+          otherContactValue: otherPerson.contactValue ?? '',
+          otherNote: otherPerson.note ?? '',
+          company,
+        }),
+      });
+      const body = (await response.json()) as { error?: string; requestId?: string };
 
-    setRequestSummary({
-      id: generateRequestId(),
-      device: selectedDeviceLabel,
-      contactMethod: effectiveContactMethodLabel,
-      name: name.trim(),
-      isOnBehalf,
-      otherPersonName: isOnBehalf ? otherPerson.name.trim() : undefined,
-      relationship: isOnBehalf ? otherPerson.relationship : undefined,
-    });
-    setIsSubmitting(false);
-    setStep('confirmation');
+      if (!response.ok) {
+        throw new Error(body.error ?? 'Unable to send your request right now.');
+      }
+
+      window.localStorage.setItem(LAST_SUBMISSION_KEY, String(getTimestamp()));
+      setRequestSummary({
+        id: body.requestId ?? generateRequestId(),
+        device: selectedDeviceLabel,
+        contactMethod: effectiveContactMethodLabel,
+        name: name.trim(),
+        isOnBehalf,
+        otherPersonName: isOnBehalf ? otherPerson.name.trim() : undefined,
+        relationship: isOnBehalf ? otherPerson.relationship : undefined,
+      });
+      setStep('confirmation');
+    } catch (error) {
+      setSubmissionError(error instanceof Error ? error.message : 'Unable to send your request right now.');
+      setTouchedFields((current) => ({ ...current, submit: true }));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const submitErrorMessage = useMemo(() => {
     if (!shouldShowError('submit')) return '';
-    if (Date.now() - formStartTime < MIN_SUBMISSION_TIME_MS) return 'Please take a moment to review your request before sending it.';
+    if (submissionError) return submissionError;
+    if (getTimestamp() - formStartTime < MIN_SUBMISSION_TIME_MS) return 'Please take a moment to review your request before sending it.';
     const lastSubmission = window.localStorage.getItem(LAST_SUBMISSION_KEY);
-    if (lastSubmission && Date.now() - Number(lastSubmission) < SUBMISSION_RATE_LIMIT_MS) return 'Please wait a short moment before sending another request.';
+    if (lastSubmission && getTimestamp() - Number(lastSubmission) < SUBMISSION_RATE_LIMIT_MS) return 'Please wait a short moment before sending another request.';
     return '';
-  }, [formStartTime, submitAttempted, touchedFields]);
+  }, [formStartTime, shouldShowError, submissionError]);
 
   return (
-    <Layout>
-      <main className="flex-grow w-full border-t border-[var(--border-subtle)] flex flex-col relative bg-[var(--bg-base)] max-w-[1440px] mx-auto border-x min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-88px)] mt-[64px] md:mt-[88px]">
+    <main className="flex-grow w-full border-t border-[var(--border-subtle)] flex flex-col relative bg-[var(--bg-base)] max-w-[1440px] mx-auto border-x min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-88px)] mt-[64px] md:mt-[88px]">
         <SupportNav />
 
         <header className="p-8 md:p-16 border-b border-[var(--border-subtle)]">
@@ -739,7 +777,6 @@ export default function ReceptionPage() {
           <div className="hidden sm:block">NODE: RECEPTION_ACTIVE</div>
           <div>SYS.STATUS: NOMINAL</div>
         </footer>
-      </main>
-    </Layout>
+    </main>
   );
 }

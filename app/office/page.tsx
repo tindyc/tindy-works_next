@@ -1,5 +1,6 @@
-import OfficePage from "@/components/office/OfficePage";
+"use client";
+import { OfficeView } from "@/components/office/OfficeView";
 
 export default function Page() {
-  return <OfficePage />;
+  return <OfficeView />;
 }

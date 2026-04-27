@@ -28,7 +28,8 @@ export function TopNav() {
   const pathname = usePathname();
 
   useEffect(() => {
-    setMobileOpen(false);
+    const timeout = window.setTimeout(() => setMobileOpen(false), 0);
+    return () => window.clearTimeout(timeout);
   }, [pathname]);
 
   return (

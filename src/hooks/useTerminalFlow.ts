@@ -210,15 +210,16 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
 
   useEffect(() => {
     mountedRef.current = true;
-    resetConversation();
+    const timeout = window.setTimeout(() => resetConversation(), 0);
 
     return () => {
       mountedRef.current = false;
+      window.clearTimeout(timeout);
       if (resetTimeoutRef.current !== null) {
         window.clearTimeout(resetTimeoutRef.current);
       }
     };
-  }, []);
+  }, [resetConversation]);
 
   useEffect(() => {
     const previousResetKey = prevResetKeyRef.current;
@@ -265,7 +266,8 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
       return;
     }
 
-    resetConversation();
+    const timeout = window.setTimeout(() => resetConversation(), 0);
+    return () => window.clearTimeout(timeout);
   }, [input, isSubmitting, resetConversation]);
 
   const setInput = useCallback((value: string) => {
@@ -381,6 +383,7 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
       isSubmitting,
       onComplete,
       resetConversation,
+      flow,
       summaryBuilder,
     ],
   );
