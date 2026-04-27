@@ -1,11 +1,11 @@
 "use client";
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useTheme } from '../context/ThemeContext';
 
 export function FloorPlanCanvas() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { theme } = useTheme();
   const isLight = theme === 'light';
 
@@ -14,7 +14,7 @@ export function FloorPlanCanvas() {
       <div className="relative w-full mx-auto lg:max-w-4xl aspect-square md:aspect-[4/3] border border-[var(--border-strong)] shadow-[0_10px_30px_var(--shadow-base)] lg:shadow-none">
         <div className="absolute inset-0 flex">
           {/* OFFICE SECTION */}
-          <div onClick={() => navigate('/office')} className="w-1/2 border-r border-[var(--border-strong)] relative group md:hover:bg-[var(--hover-bg)] transition-colors duration-500 cursor-pointer">
+          <div onClick={() => router.push('/office')} className="w-1/2 border-r border-[var(--border-strong)] relative group md:hover:bg-[var(--hover-bg)] transition-colors duration-500 cursor-pointer">
           <img alt="Office space" className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${isLight ? 'opacity-60 grayscale-0 mix-blend-normal' : 'opacity-30 grayscale mix-blend-normal'} md:group-hover:opacity-20`} src="https://lh3.googleusercontent.com/aida-public/AB6AXuDBBoXpGn1bXDQHT-4Q-cXU_ftW8LL97JhWQqetk0sI90vb-85asJo5kGy1Ru-FTTLpnriLmDn1MSy9GEmwWTwBlyWpr8wB2oQnUq_k_dbqpeQQylzqzzufH2zjZUPsOmr77ut5z-n75sFnN936UG18JpoVbd-ajFS48nSP9O7evkFZQoxI40mz04XXlAg5aruGcIatvaewATZbmZZEYzKyYLAtCVc-wL41zurhiNjYccYSbr8RVgree1HYCv_NJ4L1RYPYaff1WNwK" />
           <div className="absolute inset-0 border-[1px] border-transparent md:group-hover:border-[var(--border-subtle)] transition-colors duration-500 m-1 md:m-2"></div>
           <div className="absolute top-3 left-3 md:top-6 md:left-6 z-10">
@@ -48,7 +48,7 @@ export function FloorPlanCanvas() {
         {/* RIGHT SECTIONS */}
         <div className="w-1/2 flex flex-col">
           {/* GARDEN SECTION */}
-          <div onClick={() => navigate('/garden')} className="flex-1 border-b border-[var(--border-strong)] relative group md:hover:bg-[var(--hover-bg)] transition-colors duration-500 cursor-pointer">
+          <div onClick={() => router.push('/garden')} className="flex-1 border-b border-[var(--border-strong)] relative group md:hover:bg-[var(--hover-bg)] transition-colors duration-500 cursor-pointer">
             <img alt="Zen garden" className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${isLight ? 'opacity-60 grayscale-0 mix-blend-normal' : 'opacity-30 grayscale mix-blend-normal'} md:group-hover:opacity-20`} src="https://lh3.googleusercontent.com/aida-public/AB6AXuDYxiMnNNfpB13zCPNA4JfBVYSxGYOTVvZSck0k73i2CL2hM8CQsUoyPoUZ1RRAx_mz26sDvs-b-fODquu4RcLxH6o0EV-5uG1IRxJHKWFh-AVpo6L9rH15OVQOdj_rMSs6fDTSNYmDRdhPBjqjanaqMq6IEIj5TJZN2omCNktM8leZe_M9yprLXmZl_UStq5IGDVip_NingcacpRd8z8cw3s85JB5cLrU4Cim3G0oGem_O4-DlGz1sVQmOuhbaneu4w_eEMq4TIl9D" />
             <div className="absolute inset-0 border-[1px] border-transparent md:group-hover:border-[var(--border-subtle)] transition-colors duration-500 m-1 md:m-2"></div>
             <div className="absolute top-3 left-3 md:top-6 md:left-6 z-10">
@@ -76,7 +76,7 @@ export function FloorPlanCanvas() {
           </div>
 
           {/* RECEPTION SECTION */}
-          <div onClick={() => navigate('/reception')} className="flex-1 relative group md:hover:bg-[var(--hover-bg)] transition-colors duration-500 cursor-pointer">
+          <div onClick={() => router.push('/reception')} className="flex-1 relative group md:hover:bg-[var(--hover-bg)] transition-colors duration-500 cursor-pointer">
             <img alt="Lounge area" className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${isLight ? 'opacity-60 grayscale-0 mix-blend-normal' : 'opacity-30 grayscale mix-blend-normal'} md:group-hover:opacity-20`} src="https://lh3.googleusercontent.com/aida-public/AB6AXuB3Arx62mPvWNqGJA2f_O64KbLUDAZosA8koYEC2ZB4Zt1l5xgg6pMqCNHcIKXJ1b4uRPTCUuiELWkp7elfuHm0eQa9boWdsnKVHgZJWUaZOBLy_DDxk_NAQXb9Kzm2Ek766jRRqUp7zbmShiwlO9m6iaLYrhQU_bWkg06MkZcD69rqGpNQNeM2CjH0yrj87Zq220mIrMKdDcLjIowEfq4C6W5SOwslEhnLXMp6H3pvMaCLrVv7wnw5Dk5W3CL4oRaENB5CnaP1MmxX" />
             <div className="absolute inset-0 border-[1px] border-transparent md:group-hover:border-[var(--border-subtle)] transition-colors duration-500 m-1 md:m-2"></div>
             <div className="absolute top-3 left-3 md:top-6 md:left-6 z-10">

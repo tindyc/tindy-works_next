@@ -87,7 +87,7 @@ export function PlantIntro({ onExploreClick }: PlantIntroProps) {
           className="group flex flex-row items-center gap-3 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors duration-500 focus:outline-none"
         >
           <span className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] transition-transform duration-500 group-hover:-translate-x-1">
-            Explore what's growing
+            Explore what&apos;s growing
           </span>
           <motion.div
             animate={{ x: [0, 6, 0] }}

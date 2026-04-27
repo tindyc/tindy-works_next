@@ -18,7 +18,7 @@ export const ThemeControl: React.FC = () => {
         className="flex items-center justify-center w-8 h-8 rounded-full border border-transparent hover:border-[var(--border-strong)] hover:bg-[var(--hover-bg)] transition-colors text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
         aria-label="Toggle Theme"
       >
-        <span className="material-symbols-outlined text-[16px]">
+        <span className="material-symbols-outlined text-[16px]" suppressHydrationWarning>
           {theme === 'dark' ? 'dark_mode' : 'light_mode'}
         </span>
       </button>

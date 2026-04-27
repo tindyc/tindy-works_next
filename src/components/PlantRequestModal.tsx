@@ -26,8 +26,7 @@ export function PlantRequestModal({ plant, onClose }: PlantRequestModalProps) {
       />
       
       <div className="relative w-full max-w-3xl bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-3xl p-4 sm:p-6 md:p-8 overflow-hidden">
-        {/* Background color hint from plant */}
-        <div className={`absolute top-0 left-0 w-full h-2 ${plant.bgColor}`} />
+        <div className="absolute top-0 left-0 w-full h-2 bg-[var(--text-primary)] opacity-80" style={{ backgroundColor: plant.textColor }} />
         
         <button 
           onClick={onClose}
@@ -41,7 +40,7 @@ export function PlantRequestModal({ plant, onClose }: PlantRequestModalProps) {
         <div className="mb-6 sm:mb-8 pr-9">
           <h2 className="font-headline-sm text-2xl text-[var(--text-primary)] mb-2">Request a Plant</h2>
           <p className="text-[var(--text-secondary)] font-body-sm text-sm">
-            You've chosen the <span className="text-[var(--text-primary)] font-medium">{plant.name}</span>. 
+            You&apos;ve chosen the <span className="text-[var(--text-primary)] font-medium">{plant.name}</span>. 
             Complete the terminal prompts to initiate the growth process.
           </p>
         </div>

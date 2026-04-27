@@ -8,7 +8,6 @@ import { PlantRequestModal } from './PlantRequestModal';
 export type PlantDef = {
   id: string;
   name: string;
-  bgColor: string;
   textColor: string;
   vibe: string;
 };
@@ -17,21 +16,18 @@ const plants: PlantDef[] = [
   { 
     id: 'snake-plant', 
     name: 'SNAKE PLANT', 
-    bgColor: 'bg-black', 
     textColor: '#817565', 
     vibe: 'Calm, low-maintenance' 
   },
   { 
     id: 'catmint', 
     name: 'CATMINT', 
-    bgColor: 'bg-black', 
     textColor: '#8b7c99', 
     vibe: 'Playful, cat-friendly' 
   },
   { 
     id: 'fresh-greens', 
     name: 'FRESH GREENS', 
-    bgColor: 'bg-black', 
     textColor: '#6f8f7c', 
     vibe: 'Leafy, abundant, fresh' 
   }

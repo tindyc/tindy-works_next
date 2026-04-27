@@ -19,17 +19,21 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const initialTheme = typeof document !== 'undefined' ? document.documentElement.dataset.theme : null;
     return initialTheme === 'light' || initialTheme === 'dark' ? initialTheme : 'dark';
   });
-  const [brightness, setBrightness] = useState<number>(1);
+  const [brightness, setBrightness] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const savedBrightness = window.localStorage.getItem('app-brightness');
+      const parsedBrightness = savedBrightness === null ? Number.NaN : Number.parseFloat(savedBrightness);
+      if (Number.isFinite(parsedBrightness)) {
+        return parsedBrightness;
+      }
+    }
+    return 1;
+  });
 
-  useEffect(() => {
-    const savedBrightness = localStorage.getItem('app-brightness');
-    if (savedBrightness) setBrightness(parseFloat(savedBrightness));
-  }, []);
-
-  // Update theme tag in DOM
+  // Keep the pre-hydration theme source of truth in sync.
   useEffect(() => {
     localStorage.setItem('theme', theme);
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.dataset.theme = theme;
   }, [theme]);
 
   // Handle brightness as a pure visual filter layer
@@ -61,15 +65,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       document.body.style.transform = 'scale(1)';
     }, 150);
     return () => clearTimeout(t);
-  }, [brightness, theme]);
-
-  // Auto theme adjust based on extremes (optional)
-  useEffect(() => {
-    if (brightness < 0.7 && theme === 'light') {
-      setTheme('dark');
-    } else if (brightness > 1.3 && theme === 'dark') {
-      setTheme('light');
-    }
   }, [brightness, theme]);
 
   const toggleTheme = () => {

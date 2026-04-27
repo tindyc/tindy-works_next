@@ -16,8 +16,8 @@ export function WeatherCanvas({ plant, weather, isDay, previewTime, context = 'c
   const textClass = 'text-[var(--text-primary)]';
 
   // Time badge — always high contrast against the scene background
-  const badgeBg = isDay ? 'bg-black/80' : 'bg-white/80';
-  const badgeText = isDay ? 'text-white' : 'text-black';
+  const badgeBg = 'bg-[var(--overlay-bg)]';
+  const badgeText = 'text-[var(--text-primary)]';
 
   const timeLabel = isDay ? 'DAY MODE' : 'NIGHT MODE';
   const timeString = previewTime ?? new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/London' });
