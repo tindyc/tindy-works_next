@@ -1,205 +1,127 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Copy, ExternalLink, Mail } from 'lucide-react';
+import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
+import { Copy, ExternalLink, Mail } from 'lucide-react';
 import { SupportNav } from '@/components/SupportNav';
 
-type TopicOption = 'Work opportunity' | 'Collaboration' | 'General question';
-
-type ContactErrors = {
+type Errors = {
   name?: string;
   email?: string;
   message?: string;
-  submit?: string;
 };
-
-type ContactTouched = Record<string, boolean>;
 
 const SUBMISSION_RATE_LIMIT_MS = 30_000;
 const MIN_SUBMISSION_TIME_MS = 2_000;
 const LAST_SUBMISSION_KEY = 'contact-last-submission';
-const TOPIC_OPTIONS: TopicOption[] = ['Work opportunity', 'Collaboration', 'General question'];
 
-const getTimestamp = () => Date.now();
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
 
-const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+function validate(name: string, email: string, message: string): Errors {
+  const errors: Errors = {};
 
-const getInputClassName = (hasError: boolean) =>
-  `w-full border bg-[var(--bg-base)] px-5 py-4 text-base text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-colors ${
-    hasError
-      ? 'border-[var(--status-danger)] focus:border-[var(--status-danger)]'
-      : 'border-[var(--border-subtle)] focus:border-[var(--text-primary)]'
-  }`;
-
-const getTextAreaClassName = (hasError: boolean) =>
-  `${getInputClassName(hasError)} resize-y min-h-[180px]`;
-
-function getValidationErrors({
-  name,
-  email,
-  message,
-}: {
-  name: string;
-  email: string;
-  message: string;
-}): ContactErrors {
-  const errors: ContactErrors = {};
-
-  if (!name.trim()) {
-    errors.name = 'Please enter your name.';
-  }
-
-  if (!email.trim()) {
-    errors.email = 'Please enter your email address.';
-  } else if (!isValidEmail(email)) {
-    errors.email = 'Please enter a valid email address.';
-  }
-
-  if (!message.trim()) {
-    errors.message = 'Please add a message.';
-  } else if (message.trim().length < 10) {
-    errors.message = 'Please write at least 10 characters so I have enough context.';
+  if (!name.trim()) errors.name = 'Please enter your name.';
+  if (!email.trim()) errors.email = 'Please enter your email address.';
+  else if (!isValidEmail(email)) errors.email = 'Please enter a valid email address.';
+  if (!message.trim()) errors.message = 'Please add a message.';
+  else if (message.trim().length < 10 || /^(.)\1{4,}$/.test(message.trim()) || /^[^a-zA-Z]*$/.test(message.trim())) {
+    errors.message = 'Please write a short sentence so I have enough context.';
   }
 
   return errors;
 }
 
+function inputClassName(hasError: boolean) {
+  return `min-h-[56px] w-full border bg-[var(--bg-base)] px-4 py-4 text-base text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--text-primary)] ${
+    hasError ? 'border-[var(--status-danger)]' : 'border-[var(--border-strong)]'
+  }`;
+}
+
 function FieldError({ id, message }: { id: string; message?: string }) {
-  if (!message) {
-    return null;
-  }
+  if (!message) return null;
 
   return (
-    <p id={id} className="mt-3 text-sm text-[var(--status-danger)]" role="alert">
+    <p id={id} className="mt-3 text-base text-[var(--status-danger)]" role="alert">
       {message}
     </p>
   );
 }
 
 export function ContactView() {
-  const [topic, setTopic] = useState<TopicOption | ''>('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [company, setCompany] = useState('');
-  const [formStartTime] = useState(getTimestamp);
-  const [touchedFields, setTouchedFields] = useState<ContactTouched>({});
+  const [formStartTime] = useState(() => Date.now());
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [submissionError, setSubmissionError] = useState('');
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
 
   const directEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() ?? '';
   const linkedInUrl = process.env.NEXT_PUBLIC_LINKEDIN_URL?.trim() ?? '';
   const githubUrl = process.env.NEXT_PUBLIC_GITHUB_URL?.trim() ?? '';
+  const errors = validate(name, email, message);
+  const canSubmit = Object.keys(errors).length === 0 && !isSubmitting;
 
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  function showError(field: keyof Errors) {
+    return submitAttempted || Boolean(touched[field]);
+  }
 
-  const validationErrors = useMemo(
-    () =>
-      getValidationErrors({
-        name,
-        email,
-        message,
-      }),
-    [email, message, name]
-  );
-
-  const canSubmit = Object.keys(validationErrors).length === 0 && !isSubmitting;
-
-  const shouldShowError = useCallback(
-    (field: keyof ContactErrors) => submitAttempted || touchedFields[field],
-    [submitAttempted, touchedFields],
-  );
-
-  const markTouched = (field: string) => {
-    setTouchedFields((current) => ({ ...current, [field]: true }));
-  };
-
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitAttempted(true);
-    setSubmissionError('');
+    setSubmitError('');
 
-    if (Object.keys(validationErrors).length > 0 || isSubmitting) {
-      return;
-    }
+    if (company.trim()) return;
+    if (Object.keys(errors).length > 0 || isSubmitting) return;
 
-    if (company.trim()) {
-      return;
-    }
-
-    if (getTimestamp() - formStartTime < MIN_SUBMISSION_TIME_MS) {
-      setTouchedFields((current) => ({ ...current, submit: true }));
+    if (Date.now() - formStartTime < MIN_SUBMISSION_TIME_MS) {
+      setSubmitError('Please take a moment to review your message before sending it.');
       return;
     }
 
     const lastSubmission = window.localStorage.getItem(LAST_SUBMISSION_KEY);
-    if (lastSubmission && getTimestamp() - Number(lastSubmission) < SUBMISSION_RATE_LIMIT_MS) {
-      setTouchedFields((current) => ({ ...current, submit: true }));
+    if (lastSubmission && Date.now() - Number(lastSubmission) < SUBMISSION_RATE_LIMIT_MS) {
+      setSubmitError('Please wait a short moment before sending another message.');
       return;
     }
 
     setIsSubmitting(true);
+
     try {
       const response = await fetch('/api/contact', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          topic,
+          intent: 'general',
           name,
           email,
           message,
           company,
+          formElapsedMs: String(Date.now() - formStartTime),
+          metadata: '{}',
         }),
       });
       const body = (await response.json()) as { error?: string };
 
-      if (!response.ok) {
-        throw new Error(body.error ?? 'Unable to send your message right now.');
-      }
+      if (!response.ok) throw new Error(body.error ?? 'Unable to send your message right now.');
 
-      window.localStorage.setItem(LAST_SUBMISSION_KEY, String(getTimestamp()));
+      window.localStorage.setItem(LAST_SUBMISSION_KEY, String(Date.now()));
       setIsSubmitted(true);
     } catch (error) {
-      setSubmissionError(error instanceof Error ? error.message : 'Unable to send your message right now.');
-      setTouchedFields((current) => ({ ...current, submit: true }));
+      setSubmitError(error instanceof Error ? error.message : 'Unable to send your message right now.');
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }
 
-  const submitErrorMessage = useMemo(() => {
-    if (!shouldShowError('submit')) {
-      return '';
-    }
-
-    if (submissionError) {
-      return submissionError;
-    }
-
-    if (getTimestamp() - formStartTime < MIN_SUBMISSION_TIME_MS) {
-      return 'Please take a moment to review your message before sending it.';
-    }
-
-    const lastSubmission = window.localStorage.getItem(LAST_SUBMISSION_KEY);
-    if (lastSubmission && getTimestamp() - Number(lastSubmission) < SUBMISSION_RATE_LIMIT_MS) {
-      return 'Please wait a short moment before sending another message.';
-    }
-
-    return '';
-  }, [formStartTime, shouldShowError, submissionError]);
-
-  const handleCopyEmail = async () => {
-    if (!directEmail) {
-      return;
-    }
+  async function handleCopyEmail() {
+    if (!directEmail) return;
 
     try {
       await navigator.clipboard.writeText(directEmail);
@@ -209,32 +131,48 @@ export function ContactView() {
       setCopyState('error');
       window.setTimeout(() => setCopyState('idle'), 1800);
     }
-  };
+  }
 
   return (
-    <main className="flex-grow w-full border-t border-[var(--border-subtle)] flex flex-col relative bg-[var(--bg-base)] max-w-[1440px] mx-auto border-x min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-88px)] mt-[64px] md:mt-[88px]">
-      <SupportNav />
+    <main className="mt-[64px] flex min-h-[calc(100vh-64px)] w-full flex-grow flex-col border-t border-[var(--border-subtle)] bg-[var(--bg-base)] md:mt-[88px] md:min-h-[calc(100vh-88px)]">
+      <SupportNav active="contact" />
 
-      <header className="p-8 md:p-16 border-b border-[var(--border-subtle)]">
-        <h1 className="font-display text-5xl md:text-7xl font-bold tracking-tighter uppercase mb-3 text-[var(--text-primary)] drop-shadow-md">
-          Contact
-        </h1>
-        <p className="font-mono text-xs uppercase tracking-widest text-[var(--text-secondary)] mb-6">
-          SYS.NODE: CONTACT_INTERFACE
-        </p>
-        <p className="font-sans text-base md:text-lg text-[var(--text-secondary)] max-w-2xl leading-relaxed">
-          For anything else - projects, collaboration, or general enquiries.
-        </p>
+      <header className="border-b border-[var(--border-subtle)] px-4 py-10 md:px-8 md:py-14 lg:px-16">
+        <div className="mx-auto max-w-6xl">
+          <p className="mb-4 text-base font-semibold text-[var(--text-secondary)]">Contact</p>
+          <h1 className="font-display text-4xl font-bold leading-tight text-[var(--text-primary)] md:text-5xl lg:text-6xl">
+            Get in touch
+          </h1>
+          <p className="mt-4 max-w-3xl text-lg leading-relaxed text-[var(--text-secondary)] md:text-xl">
+            For opportunities, recruitment, or general questions.
+          </p>
+        </div>
       </header>
 
-      <section className="p-4 md:p-16 flex-grow">
-        <div className="w-full max-w-6xl mx-auto grid gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
-          <div className="border border-[var(--border-subtle)] p-8 md:p-12 tech-panel bg-[var(--bg-base)]">
-            {!isSubmitted ? (
-              <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8">
+      <section className="flex-grow px-4 py-10 md:px-8 md:py-14 lg:px-16">
+        <div className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="border border-[var(--border-subtle)] bg-[var(--ui-surface)] p-4 md:p-8 lg:p-10">
+            {isSubmitted ? (
+              <div>
+                <h2 className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
+                  Message sent
+                </h2>
+                <p className="mt-4 max-w-2xl text-lg leading-relaxed text-[var(--text-secondary)]">
+                  Thanks. I&apos;ll get back to you soon.
+                </p>
+                <Link href="/reception" className="ui-button mt-8 min-h-[48px] px-6 py-4 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                  Back to reception
+                </Link>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
+                <label className="sr-only" htmlFor="contact-company">
+                  Company
+                </label>
                 <input
-                  type="text"
+                  id="contact-company"
                   name="company"
+                  type="text"
                   value={company}
                   onChange={(event) => setCompany(event.target.value)}
                   className="hidden"
@@ -243,22 +181,9 @@ export function ContactView() {
                   aria-hidden="true"
                 />
 
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-4">
-                    CONTACT FORM
-                  </p>
-                  <h2 className="font-display text-4xl uppercase tracking-wider mb-3">Send a message</h2>
-                  <p className="text-[var(--text-secondary)] font-sans text-base leading-relaxed max-w-2xl">
-                    Use this for project enquiries, collaborations, or anything that does not belong in support.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   <div>
-                    <label
-                      htmlFor="contact-name"
-                      className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-3"
-                    >
+                    <label htmlFor="contact-name" className="mb-2 block text-base font-semibold text-[var(--text-primary)]">
                       Name
                     </label>
                     <input
@@ -267,19 +192,15 @@ export function ContactView() {
                       autoComplete="name"
                       value={name}
                       onChange={(event) => setName(event.target.value)}
-                      onBlur={() => markTouched('name')}
-                      placeholder="Your name"
+                      onBlur={() => setTouched((current) => ({ ...current, name: true }))}
                       aria-describedby="contact-name-error"
-                      className={getInputClassName(shouldShowError('name') && Boolean(validationErrors.name))}
+                      className={inputClassName(showError('name') && Boolean(errors.name))}
                     />
-                    <FieldError id="contact-name-error" message={shouldShowError('name') ? validationErrors.name : ''} />
+                    <FieldError id="contact-name-error" message={showError('name') ? errors.name : ''} />
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="contact-email"
-                      className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-3"
-                    >
+                    <label htmlFor="contact-email" className="mb-2 block text-base font-semibold text-[var(--text-primary)]">
                       Email
                     </label>
                     <input
@@ -289,177 +210,92 @@ export function ContactView() {
                       autoComplete="email"
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
-                      onBlur={() => markTouched('email')}
-                      placeholder="you@example.com"
+                      onBlur={() => setTouched((current) => ({ ...current, email: true }))}
                       aria-describedby="contact-email-error"
-                      className={getInputClassName(shouldShowError('email') && Boolean(validationErrors.email))}
+                      className={inputClassName(showError('email') && Boolean(errors.email))}
                     />
-                    <FieldError id="contact-email-error" message={shouldShowError('email') ? validationErrors.email : ''} />
+                    <FieldError id="contact-email-error" message={showError('email') ? errors.email : ''} />
                   </div>
                 </div>
 
                 <div>
-                  <label
-                    htmlFor="contact-topic"
-                    className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-3"
-                  >
-                    Topic
-                  </label>
-                  <select
-                    id="contact-topic"
-                    value={topic}
-                    onChange={(event) => setTopic(event.target.value as TopicOption | '')}
-                    className={getInputClassName(false)}
-                  >
-                    <option value="">Choose a topic</option>
-                    {TOPIC_OPTIONS.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    htmlFor="contact-message"
-                    className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-3"
-                  >
+                  <label htmlFor="contact-message" className="mb-2 block text-base font-semibold text-[var(--text-primary)]">
                     Message
                   </label>
                   <textarea
                     id="contact-message"
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
-                    onBlur={() => markTouched('message')}
-                    placeholder="Tell me a little about what you need."
-                    rows={7}
+                    onBlur={() => setTouched((current) => ({ ...current, message: true }))}
+                    rows={6}
                     minLength={10}
-                    aria-describedby="contact-message-help contact-message-error"
-                    className={getTextAreaClassName(shouldShowError('message') && Boolean(validationErrors.message))}
+                    aria-describedby="contact-message-error"
+                    className={`${inputClassName(showError('message') && Boolean(errors.message))} min-h-[180px] resize-y`}
                   />
-                  <p id="contact-message-help" className="mt-3 text-sm text-[var(--text-secondary)] leading-relaxed">
-                    For technical help, please use the Support page.
-                  </p>
-                  <FieldError
-                    id="contact-message-error"
-                    message={shouldShowError('message') ? validationErrors.message : ''}
-                  />
+                  <FieldError id="contact-message-error" message={showError('message') ? errors.message : ''} />
                 </div>
 
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-t border-[var(--border-subtle)] pt-6">
+                <div className="flex flex-col gap-4 border-t border-[var(--border-subtle)] pt-6 md:flex-row md:items-center md:justify-between">
                   <div className="max-w-xl">
-                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                      I&apos;ll only use these details to respond to your message.
+                    <p className="text-base leading-relaxed text-[var(--text-secondary)]">
+                      I&apos;ll only use these details to reply.
                     </p>
-                    <FieldError id="contact-submit-error" message={submitErrorMessage} />
+                    <FieldError id="contact-submit-error" message={submitError} />
                   </div>
                   <button
                     type="submit"
                     disabled={!canSubmit}
-                    className="ui-button min-w-[220px] px-8 py-4 font-mono text-[10px] uppercase font-bold tracking-widest"
+                    className="ui-button min-h-[48px] w-full px-8 py-4 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)] md:w-auto"
                   >
                     {isSubmitting ? 'Sending...' : 'Send message'}
                   </button>
                 </div>
               </form>
-            ) : (
-              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-4">
-                  SYS.RECEIVED
-                </p>
-                <h2 className="font-display text-4xl uppercase tracking-wider mb-4">Message sent</h2>
-                <p className="text-[var(--text-secondary)] font-sans text-base md:text-lg leading-relaxed max-w-2xl">
-                  Thanks - I&apos;ll get back to you soon.
-                </p>
-                <div className="mt-10">
-                  <Link
-                    href="/"
-                    className="ui-button px-8 py-4 font-mono text-[10px] uppercase font-bold tracking-widest"
-                  >
-                    Return to Studio
-                  </Link>
-                </div>
-              </div>
             )}
           </div>
 
-          <aside className="flex flex-col gap-6">
-            <div className="border border-[var(--border-subtle)] p-8 tech-panel bg-[var(--bg-base)]">
-              <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-4">
-                DIRECT CONTACT
-              </p>
-              <h2 className="font-display text-3xl uppercase tracking-wide mb-4">Reach me directly</h2>
-              <p className="text-[var(--text-secondary)] text-sm leading-relaxed mb-6">
-                If you already know what you need, you can email directly or use the links below.
+          {(directEmail || linkedInUrl || githubUrl) ? (
+            <aside className="border border-[var(--border-subtle)] p-5 md:p-6">
+              <h2 className="font-display text-2xl font-semibold text-[var(--text-primary)]">
+                Direct contact
+              </h2>
+              <p className="mt-3 text-base leading-relaxed text-[var(--text-secondary)]">
+                You can also email directly or use the links below.
               </p>
 
               {directEmail ? (
-                <div className="border border-[var(--border-subtle)] p-5 bg-[var(--bg-base)]">
-                  <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-3">Email</p>
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <a
-                      href={`mailto:${directEmail}`}
-                      className="inline-flex items-center gap-3 text-[var(--text-primary)] hover:text-[var(--text-secondary)] transition-colors break-all"
-                    >
-                      <Mail className="w-4 h-4" />
-                      <span>{directEmail}</span>
-                    </a>
-                    <button
-                      type="button"
-                      onClick={handleCopyEmail}
-                      className="ui-button font-mono text-[10px] uppercase tracking-widest"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                      {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Try mailto' : 'Copy'}
-                    </button>
-                  </div>
+                <div className="mt-5 flex flex-col gap-3">
+                  <a href={`mailto:${directEmail}`} className="inline-flex min-h-[48px] items-center gap-3 break-all text-base text-[var(--text-primary)] underline underline-offset-4 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                    <Mail className="h-5 w-5 shrink-0" />
+                    <span>{directEmail}</span>
+                  </a>
+                  <button type="button" onClick={handleCopyEmail} className="ui-button min-h-[48px] w-full px-5 py-3 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                    <Copy className="h-5 w-5" />
+                    {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Use email link' : 'Copy email'}
+                  </button>
                 </div>
               ) : null}
 
-              {(linkedInUrl || githubUrl) && (
-                <div className="mt-4 grid gap-3">
+              {(linkedInUrl || githubUrl) ? (
+                <div className="mt-5 grid gap-3">
                   {linkedInUrl ? (
-                    <a
-                      href={linkedInUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-between border border-[var(--border-subtle)] p-4 hover:border-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition-colors"
-                    >
-                      <span className="inline-flex items-center gap-3">
-                        <ExternalLink className="w-4 h-4" />
-                        <span>LinkedIn</span>
-                      </span>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">Open</span>
+                    <a href={linkedInUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[48px] items-center gap-3 border border-[var(--border-subtle)] px-4 py-3 text-base text-[var(--text-primary)] hover:bg-[var(--hover-bg)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                      <ExternalLink className="h-5 w-5" />
+                      LinkedIn
                     </a>
                   ) : null}
-
                   {githubUrl ? (
-                    <a
-                      href={githubUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-between border border-[var(--border-subtle)] p-4 hover:border-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition-colors"
-                    >
-                      <span className="inline-flex items-center gap-3">
-                        <ExternalLink className="w-4 h-4" />
-                        <span>GitHub</span>
-                      </span>
-                      <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)]">Open</span>
+                    <a href={githubUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[48px] items-center gap-3 border border-[var(--border-subtle)] px-4 py-3 text-base text-[var(--text-primary)] hover:bg-[var(--hover-bg)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                      <ExternalLink className="h-5 w-5" />
+                      GitHub
                     </a>
                   ) : null}
                 </div>
-              )}
-            </div>
-          </aside>
+              ) : null}
+            </aside>
+          ) : null}
         </div>
       </section>
-
-      <footer className="p-8 flex justify-between items-center font-mono text-[10px] uppercase text-[var(--text-secondary)] tracking-widest border-t border-[var(--border-subtle)] mt-auto bg-[var(--bg-base)]">
-        <div>LOCAL PORT: 3000</div>
-        <div className="hidden sm:block">NODE: CONTACT_ACTIVE</div>
-        <div>SYS.STATUS: NOMINAL</div>
-      </footer>
     </main>
   );
 }

@@ -8,9 +8,9 @@ type RateLimitRecord = {
 };
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 5;
-const DUPLICATE_GUARD_MS = 8_000;
+const RATE_LIMIT_WINDOW_MS = 30_000;
+const RATE_LIMIT_MAX = 1;
+const MIN_SUBMISSION_TIME_MS = 2_000;
 const rateLimitStore = new Map<string, RateLimitRecord>();
 
 function getClientIp(request: Request) {
@@ -57,7 +57,7 @@ function enforceRateLimit(clientIp: string, fingerprint: string) {
     return null;
   }
 
-  if (now - existing.lastTimestamp < DUPLICATE_GUARD_MS && existing.lastFingerprint === fingerprint) {
+  if (now - existing.lastTimestamp < RATE_LIMIT_WINDOW_MS && existing.lastFingerprint === fingerprint) {
     return 'Duplicate submission detected. Please wait before trying again.';
   }
 
@@ -77,12 +77,21 @@ function validatePayload(payload: Record<string, string>) {
     return 'Spam detected.';
   }
 
+  const formElapsedMs = Number(payload.formElapsedMs);
+  if (!Number.isFinite(formElapsedMs) || formElapsedMs < MIN_SUBMISSION_TIME_MS) {
+    return 'Please take a moment to review your message before sending it.';
+  }
+
   if (!payload.device) {
     return 'Device is required.';
   }
 
   if (!payload.description || payload.description.length < 10) {
     return 'Description must be at least 10 characters.';
+  }
+
+  if (/^(.)\1{4,}$/.test(payload.description) || /^[^a-zA-Z]*$/.test(payload.description)) {
+    return 'Please write a short description with enough context.';
   }
 
   if (!payload.name) {

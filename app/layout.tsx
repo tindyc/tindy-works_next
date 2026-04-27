@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { ThemeControl } from "@/components/ThemeControl";
@@ -43,12 +42,10 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className="min-h-full">
-        <Script
-          id="theme-init"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{ __html: themeInitScript }}
-        />
 
         <ThemeProvider>
           <div className="bg-[var(--bg-base)] text-[var(--text-primary)] min-h-[100dvh] flex flex-col antialiased selection:bg-[var(--text-primary)] selection:text-[var(--bg-base)]">
