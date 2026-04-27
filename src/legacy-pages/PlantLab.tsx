@@ -184,14 +184,14 @@ export function PlantLab() {
                   {day}
                 </p>
               </div>
-              <div className="relative flex-1 overflow-hidden bg-[#f5f5f5]">
+              <div className="relative flex-1 overflow-hidden bg-[var(--bg-base)]">
                 <div className="absolute bottom-0 left-0 w-full h-[1px] bg-[var(--border-subtle)] z-10" />
                 <div className="absolute inset-0 overflow-hidden">
                   <div className="w-full h-full">
                     <DigitalPlant
                       context="card"
                       plant={{ growth, leafCount: Math.floor(growth / 20), isWilted: false, harvestReady: harvestReady ?? false, hydration }}
-                      strokeClass="stroke-[#111111]"
+                      strokeClass="stroke-[var(--text-primary)]"
                     />
                   </div>
                 </div>
@@ -217,14 +217,14 @@ export function PlantLab() {
                   {label}
                 </p>
               </div>
-              <div className="relative flex-1 overflow-hidden bg-[#f5f5f5]">
+              <div className="relative flex-1 overflow-hidden bg-[var(--bg-base)]">
                 <div className="absolute bottom-0 left-0 w-full h-[1px] bg-[var(--border-subtle)] z-10" />
                 <div className="absolute inset-0 overflow-hidden">
                   <div className="w-full h-full">
                     <DigitalPlant
                       context="card"
                       plant={{ growth: Math.max(20, hydration), leafCount: Math.floor(hydration / 20), isWilted, harvestReady: false, hydration }}
-                      strokeClass="stroke-[#111111]"
+                      strokeClass="stroke-[var(--text-primary)]"
                     />
                   </div>
                 </div>

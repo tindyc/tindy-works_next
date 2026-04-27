@@ -1,6 +1,6 @@
 "use client";
 
-import { NavLink } from 'react-router-dom';
+import Link from 'next/link';
 
 export function Cats() {
   return (
@@ -18,23 +18,23 @@ export function Cats() {
       </header>
 
       <section className="p-8 md:p-16 flex-grow flex items-center justify-center">
-        <div className="w-full max-w-xl border border-[var(--border-strong)] p-8 md:p-10 bg-[var(--hover-bg)]">
+        <div className="w-full max-w-xl border border-[var(--border-subtle)] p-8 md:p-10 bg-[var(--hover-bg)]">
           <p className="font-mono text-[10px] md:text-xs uppercase tracking-[0.14em] text-[var(--text-muted)] mb-4">
             Quick Actions
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
-            <NavLink
-              to="/garden"
-              className="w-full sm:w-auto text-center px-6 py-3 border border-[var(--text-primary)] bg-[var(--text-primary)] text-[var(--bg-base)] font-mono text-[10px] md:text-xs uppercase tracking-[0.14em] hover:bg-[var(--bg-base)] hover:text-[var(--text-primary)] transition-colors"
+            <Link
+              href="/garden"
+              className="ui-button min-h-11 w-full text-center font-mono text-[10px] uppercase tracking-[0.14em] md:text-xs sm:w-auto"
             >
               Open Garden
-            </NavLink>
-            <NavLink
-              to="/"
-              className="w-full sm:w-auto text-center px-6 py-3 border border-[var(--border-strong)] text-[var(--text-primary)] font-mono text-[10px] md:text-xs uppercase tracking-[0.14em] hover:bg-[var(--hover-bg)] transition-colors"
+            </Link>
+            <Link
+              href="/"
+              className="ui-button min-h-11 w-full text-center font-mono text-[10px] uppercase tracking-[0.14em] md:text-xs sm:w-auto"
             >
               Back to Studio
-            </NavLink>
+            </Link>
           </div>
         </div>
       </section>

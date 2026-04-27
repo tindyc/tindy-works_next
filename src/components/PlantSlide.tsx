@@ -22,12 +22,12 @@ export const PlantSlide: React.FC<PlantSlideProps> = ({ plant, isActive, onReque
         animate={{ opacity: isActive ? 1 : 0.9, y: isActive ? 0 : 10 }}
         transition={{ duration: 0.45, ease: 'easeOut' }}
       >
-        <h3 className="font-['Space_Grotesk'] text-sm md:text-base tracking-[0.18em] uppercase text-[var(--text-secondary)] opacity-70 text-center">
+        <h3 className="font-headline-md text-sm md:text-base tracking-[0.18em] uppercase text-[var(--text-secondary)] opacity-70 text-center">
           {plant.name}
         </h3>
 
         <div
-          className={`w-full max-w-[420px] aspect-[3/4] rounded-2xl border border-[var(--border-strong)] p-8 flex items-end justify-center bg-[var(--bg-base)] ${isLight ? 'shadow-[inset_0_0_40px_rgba(0,0,0,0.08)]' : 'shadow-[0_10px_40px_rgba(0,0,0,0.6)]'}`}
+          className={`ui-card w-full max-w-[420px] aspect-[3/4] p-8 flex items-end justify-center ${isLight ? 'shadow-[inset_0_0_40px_rgba(0,0,0,0.08)]' : 'shadow-[0_10px_40px_rgba(0,0,0,0.6)]'}`}
         >
           <div
             className="w-full h-full flex items-end justify-center"
@@ -45,7 +45,7 @@ export const PlantSlide: React.FC<PlantSlideProps> = ({ plant, isActive, onReque
           </p>
           <button
             onClick={() => onRequest(plant)}
-            className="border border-[var(--border-strong)] text-[var(--text-primary)] bg-transparent hover:bg-[var(--text-primary)] hover:text-[var(--bg-base)] transition-all duration-300 rounded-full px-6 py-3 shadow-[0_4px_20px_var(--shadow-base)]"
+            className="ui-button min-h-11 font-mono text-xs uppercase tracking-[0.14em]"
           >
             REQUEST THIS PLANT
           </button>

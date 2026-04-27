@@ -5,18 +5,18 @@ import { usePathname } from 'next/navigation';
 
 function linkClassName(isActive: boolean) {
   return isActive
-    ? 'text-[var(--text-primary)] border-b border-[var(--text-primary)] pb-1'
-    : 'hover:text-[var(--text-primary)] transition-colors';
+    ? 'border-b border-[var(--text-primary)] pb-1 text-[var(--text-primary)]'
+    : 'transition-colors hover:text-[var(--text-primary)]';
 }
 
 export function SupportNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-col gap-4 p-6 border-b border-[var(--border-subtle)] font-mono text-[10px] uppercase text-[var(--text-secondary)] md:flex-row md:items-center md:justify-between">
+    <nav className="flex flex-col gap-4 border-b border-[var(--border-subtle)] p-6 font-mono text-[10px] uppercase text-[var(--text-secondary)] md:flex-row md:items-center md:justify-between">
       <Link
         href="/reception"
-        className="text-[var(--text-primary)] font-bold tracking-widest hover:text-[var(--text-secondary)] transition-colors"
+        className="font-bold tracking-widest text-[var(--text-primary)] transition-colors hover:text-[var(--text-secondary)]"
       >
         STUDIO_RECEPTION
       </Link>
@@ -30,7 +30,7 @@ export function SupportNav() {
         </Link>
       </div>
 
-      <Link href="/" className="hover:text-[var(--text-primary)] transition-colors md:text-right">
+      <Link href="/" className="transition-colors hover:text-[var(--text-primary)] md:text-right">
         BACK TO STUDIO
       </Link>
     </nav>

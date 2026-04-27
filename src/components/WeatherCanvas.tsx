@@ -7,9 +7,8 @@ export function WeatherCanvas({ plant, weather, isDay, previewTime, context = 'c
   const isRain = weather?.condition === 'RAIN';
   const isSnow = weather?.condition === 'SNOW';
 
-  // Scene colours — driven by time of day, independent of UI theme
-  const bgClass = isDay ? 'bg-[#f5f5f5] text-[#111111]' : 'bg-[#0a0a0a] text-[#eeeeee]';
-  const strokeClass = isDay ? 'stroke-[#111111]' : 'stroke-[#eeeeee]';
+  const bgClass = 'bg-[var(--bg-base)] text-[var(--text-primary)]';
+  const strokeClass = 'stroke-[var(--text-primary)]';
 
   const overlayBg = 'bg-[var(--overlay-bg)]';
   const overlayBorderClass = 'border-[var(--border-subtle)]';

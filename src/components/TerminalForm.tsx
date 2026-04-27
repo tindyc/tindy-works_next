@@ -66,7 +66,7 @@ export function TerminalForm<TContext = Record<string, unknown>>({
 
   return (
     <section
-      className={`w-full border border-[var(--border-strong)] bg-[var(--bg-base)]/95 shadow-[0_20px_60px_var(--shadow-base)] ${className ?? ''}`}
+      className={`w-full border border-[var(--border-subtle)] bg-[var(--bg-base)]/95 shadow-[0_20px_60px_var(--shadow-base)] ${className ?? ''}`}
       onClick={focusInput}
       aria-label="Terminal form"
     >
@@ -92,11 +92,11 @@ export function TerminalForm<TContext = Record<string, unknown>>({
               key={entry.id}
               className={
                 entry.type === 'error'
-                  ? 'text-red-400'
+                  ? 'text-[var(--status-danger)]'
                   : entry.type === 'input'
                     ? 'text-[var(--text-primary)]'
                     : entry.type === 'success'
-                      ? 'text-emerald-400'
+                      ? 'text-[var(--status-success)]'
                       : 'text-[var(--text-secondary)]'
               }
             >

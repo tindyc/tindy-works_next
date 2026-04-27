@@ -12,7 +12,7 @@ const navItems = [
 
 function itemClassName(isActive: boolean) {
   return `flex flex-col items-center gap-2 group cursor-pointer ${
-    isActive ? '*:text-[var(--text-primary)]' : ''
+    isActive ? '*:text-primary *:text-[var(--text-primary)]' : ''
   }`;
 }
 
@@ -24,7 +24,7 @@ export function SideNav() {
       <div className="flex flex-col gap-8 items-center pt-8">
         {navItems.map((item) => (
           <Link key={item.href} href={item.href} className={itemClassName(pathname === item.href)}>
-            <span className="material-symbols-outlined text-[var(--text-secondary)] text-2xl group-hover:text-[var(--text-primary)] transition-colors duration-300" style={{ fontVariationSettings: "'FILL' 1" }}>{item.icon}</span>
+            <span className="material-symbols-outlined text-[var(--text-secondary)] text-2xl group-hover:text-primary transition-colors duration-300" style={{ fontVariationSettings: "'FILL' 1" }}>{item.icon}</span>
             <span className="font-label-sm text-label-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] [writing-mode:vertical-rl] transform rotate-180 tracking-widest mt-4">{item.label}</span>
           </Link>
         ))}

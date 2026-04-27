@@ -25,14 +25,15 @@ export function PlantRequestModal({ plant, onClose }: PlantRequestModalProps) {
         onClick={onClose}
       />
       
-      <div className="relative w-full max-w-3xl bg-[var(--bg-base)] border border-[var(--border-subtle)] rounded-3xl p-4 sm:p-6 md:p-8 overflow-hidden">
+      <div className="ui-card relative w-full max-w-3xl overflow-hidden p-4 sm:p-6 md:p-8">
         <div className="absolute top-0 left-0 w-full h-2 bg-[var(--text-primary)] opacity-80" style={{ backgroundColor: plant.textColor }} />
         
         <button 
+          type="button"
           onClick={onClose}
           aria-label="Close request modal"
           title="Close"
-          className="absolute top-6 right-6 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+          className="ui-button absolute top-6 right-6 h-10 w-10 p-0"
         >
           <X size={20} />
         </button>

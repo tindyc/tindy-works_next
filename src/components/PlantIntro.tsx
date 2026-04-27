@@ -38,7 +38,7 @@ export function PlantIntro({ onExploreClick }: PlantIntroProps) {
     <div className="relative w-full h-full flex flex-col items-center justify-center text-center px-4 md:px-6 xl:px-8 py-16 md:py-12 overflow-hidden bg-[var(--bg-base)]">
       
       {/* Subtle Visual Anchor - Blurred Organic Glow */}
-      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] max-w-[800px] aspect-square rounded-full pointer-events-none transition-all duration-400 ${isLight ? 'bg-[#b7c8bd]' : 'bg-[#6f8f7c]'}`}
+      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] max-w-[800px] aspect-square rounded-full pointer-events-none transition-all duration-400 ${isLight ? 'bg-[var(--text-secondary)]' : 'bg-[var(--text-primary)]'}`}
            style={{ 
              filter: 'blur(var(--ambient-blur, 100px))',
              opacity: 'var(--ambient-glow-opacity, 0.05)'
@@ -52,7 +52,7 @@ export function PlantIntro({ onExploreClick }: PlantIntroProps) {
         viewport={{ once: true, margin: "-100px" }}
         className="relative z-10 font-body-md text-[var(--text-secondary)] leading-relaxed md:leading-[1.8] flex flex-col gap-8 md:gap-6 lg:gap-10 text-sm md:text-[13px] lg:text-base max-w-2xl mx-auto"
       >
-        <motion.p variants={itemVariants} className="font-['Inter'] text-xl md:text-lg lg:text-2xl text-[var(--text-secondary)] tracking-wide font-medium">
+        <motion.p variants={itemVariants} className="font-body-lg text-xl md:text-lg lg:text-2xl text-[var(--text-secondary)] tracking-wide font-medium">
           Grown for fun, shared with love.
         </motion.p>
 
@@ -84,15 +84,15 @@ export function PlantIntro({ onExploreClick }: PlantIntroProps) {
       >
         <button 
           onClick={handleScroll}
-          className="group flex flex-row items-center gap-3 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors duration-500 focus:outline-none"
+          className="ui-button group font-mono text-[10px] uppercase tracking-[0.2em] md:text-xs"
         >
-          <span className="font-mono text-[10px] md:text-xs uppercase tracking-[0.2em] transition-transform duration-500 group-hover:-translate-x-1">
+          <span className="transition-transform duration-500 group-hover:-translate-x-1">
             Explore what&apos;s growing
           </span>
           <motion.div
             animate={{ x: [0, 6, 0] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-            className="text-[var(--text-muted)] group-hover:text-[var(--text-primary)] transition-colors duration-500"
+            className="text-[var(--ui-text-muted)] group-hover:text-[var(--ui-text)] transition-colors duration-500"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14"></path>
@@ -101,7 +101,7 @@ export function PlantIntro({ onExploreClick }: PlantIntroProps) {
           </motion.div>
         </button>
         <div className="w-px h-8 bg-gradient-to-b from-[var(--border-subtle)] to-transparent hidden md:block" />
-        <span className="font-['Space_Grotesk'] tracking-widest text-[10px] text-[var(--text-muted)] uppercase mt-4 md:mt-2 hidden xl:block">
+        <span className="font-headline-md tracking-widest text-[10px] text-[var(--text-muted)] uppercase mt-4 md:mt-2 hidden xl:block">
           Real plants, grown at home
         </span>
       </motion.div>

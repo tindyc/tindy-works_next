@@ -16,19 +16,19 @@ const plants: PlantDef[] = [
   { 
     id: 'snake-plant', 
     name: 'SNAKE PLANT', 
-    textColor: '#817565', 
+    textColor: 'var(--text-secondary)', 
     vibe: 'Calm, low-maintenance' 
   },
   { 
     id: 'catmint', 
     name: 'CATMINT', 
-    textColor: '#8b7c99', 
+    textColor: 'var(--text-secondary)', 
     vibe: 'Playful, cat-friendly' 
   },
   { 
     id: 'fresh-greens', 
     name: 'FRESH GREENS', 
-    textColor: '#6f8f7c', 
+    textColor: 'var(--text-secondary)', 
     vibe: 'Leafy, abundant, fresh' 
   }
 ];
@@ -153,7 +153,7 @@ export function PlantCarousel() {
         {/* Prev Button */}
         <button 
           onClick={() => scrollTo(Math.max(0, activeIndex - 1))}
-          className={`shrink-0 w-10 h-10 flex items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--overlay-bg)] backdrop-blur-md pointer-events-auto transition-all duration-300 hover:bg-[var(--text-primary)] hover:text-[var(--bg-base)] text-[var(--text-primary)] shadow-[0_4px_20px_var(--shadow-base)] ${activeIndex === 0 ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}
+          className={`ui-button shrink-0 w-10 h-10 p-0 bg-[var(--overlay-bg)] backdrop-blur-md pointer-events-auto shadow-[0_4px_20px_var(--shadow-base)] ${activeIndex === 0 ? 'opacity-0 scale-90' : 'opacity-100 scale-100'}`}
         >
           <ChevronLeft size={20} />
         </button>
@@ -164,7 +164,7 @@ export function PlantCarousel() {
             <button 
               key={idx}
               onClick={() => scrollTo(idx)}
-              className={`h-1.5 rounded-full transition-all duration-500 ${idx === activeIndex ? 'w-6 sm:w-8 bg-[var(--text-primary)] opacity-100' : 'w-2 bg-[var(--text-muted)] opacity-40 hover:opacity-70'}`}
+              className={`h-2 rounded-xl border border-[var(--ui-border)] transition-all duration-500 ${idx === activeIndex ? 'w-6 sm:w-8 bg-[var(--ui-text)] opacity-100' : 'w-3 bg-[var(--ui-surface)] opacity-70 hover:bg-[var(--hover-bg)] hover:opacity-100'}`}
               aria-label={`Go to slide ${idx + 1}`}
             />
           ))}
@@ -173,7 +173,7 @@ export function PlantCarousel() {
         {/* Next Button */}
         <button 
           onClick={() => scrollTo(Math.min(plants.length - 1, activeIndex + 1))}
-          className={`shrink-0 w-10 h-10 flex items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--overlay-bg)] backdrop-blur-md pointer-events-auto transition-all duration-300 hover:bg-[var(--text-primary)] hover:text-[var(--bg-base)] text-[var(--text-primary)] z-30 shadow-[0_4px_20px_var(--shadow-base)] ${activeIndex === plants.length - 1 ? 'opacity-0 scale-90 md:opacity-30 md:scale-100 cursor-not-allowed' : 'opacity-100 scale-100'}`}
+          className={`ui-button shrink-0 w-10 h-10 p-0 bg-[var(--overlay-bg)] backdrop-blur-md pointer-events-auto z-30 shadow-[0_4px_20px_var(--shadow-base)] ${activeIndex === plants.length - 1 ? 'opacity-0 scale-90 md:opacity-30 md:scale-100 cursor-not-allowed' : 'opacity-100 scale-100'}`}
           disabled={activeIndex === plants.length - 1}
         >
           <ChevronRight size={20} />

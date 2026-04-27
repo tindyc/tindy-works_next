@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Copy, ExternalLink, Mail } from 'lucide-react';
-import { NavLink } from 'react-router-dom';
+import Link from 'next/link';
 import { SupportNav } from '../components/SupportNav';
 
 type TopicOption = 'Work opportunity' | 'Collaboration' | 'General question';
@@ -26,8 +26,8 @@ const isValidEmail = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.
 const getInputClassName = (hasError: boolean) =>
   `w-full border bg-[var(--bg-base)] px-5 py-4 text-base text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-colors ${
     hasError
-      ? 'border-red-500 focus:border-red-500'
-      : 'border-[var(--border-strong)] focus:border-[var(--text-primary)]'
+      ? 'border-[var(--status-danger)] focus:border-[var(--status-danger)]'
+      : 'border-[var(--border-subtle)] focus:border-[var(--text-primary)]'
   }`;
 
 const getTextAreaClassName = (hasError: boolean) =>
@@ -69,7 +69,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   }
 
   return (
-    <p id={id} className="mt-3 text-sm text-red-500" role="alert">
+    <p id={id} className="mt-3 text-sm text-[var(--status-danger)]" role="alert">
       {message}
     </p>
   );
@@ -325,7 +325,7 @@ export function Contact() {
                   <button
                     type="submit"
                     disabled={!canSubmit}
-                    className="bg-[var(--text-primary)] text-[var(--bg-base)] px-8 py-4 font-mono text-[10px] uppercase font-bold tracking-widest hover:bg-neutral-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed min-w-[220px]"
+                    className="ui-button min-w-[220px] px-8 py-4 font-mono text-[10px] uppercase font-bold tracking-widest"
                   >
                     {isSubmitting ? 'Sending...' : 'Send message'}
                   </button>
@@ -341,12 +341,12 @@ export function Contact() {
                   Thanks - I&apos;ll get back to you soon.
                 </p>
                 <div className="mt-10">
-                  <NavLink
-                    to="/"
-                    className="inline-flex items-center justify-center bg-[var(--text-primary)] text-[var(--bg-base)] px-8 py-4 font-mono text-[10px] uppercase font-bold tracking-widest hover:bg-neutral-300 transition-colors"
+                  <Link
+                    href="/"
+                    className="ui-button px-8 py-4 font-mono text-[10px] uppercase font-bold tracking-widest"
                   >
                     Return to Studio
-                  </NavLink>
+                  </Link>
                 </div>
               </div>
             )}
@@ -363,7 +363,7 @@ export function Contact() {
               </p>
 
               {directEmail ? (
-                <div className="border border-[var(--border-strong)] p-5 bg-[var(--bg-base)]">
+                <div className="border border-[var(--border-subtle)] p-5 bg-[var(--bg-base)]">
                   <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-3">Email</p>
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <a
@@ -376,7 +376,7 @@ export function Contact() {
                     <button
                       type="button"
                       onClick={handleCopyEmail}
-                      className="inline-flex items-center justify-center gap-2 border border-[var(--border-strong)] px-4 py-2 font-mono text-[10px] uppercase tracking-widest hover:border-[var(--text-primary)] hover:text-[var(--text-primary)] transition-colors"
+                      className="ui-button font-mono text-[10px] uppercase tracking-widest"
                     >
                       <Copy className="w-3.5 h-3.5" />
                       {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Try mailto' : 'Copy'}
@@ -392,7 +392,7 @@ export function Contact() {
                       href={linkedInUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center justify-between border border-[var(--border-strong)] p-4 hover:border-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition-colors"
+                      className="flex items-center justify-between border border-[var(--border-subtle)] p-4 hover:border-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition-colors"
                     >
                       <span className="inline-flex items-center gap-3">
                         <ExternalLink className="w-4 h-4" />
@@ -407,7 +407,7 @@ export function Contact() {
                       href={githubUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="flex items-center justify-between border border-[var(--border-strong)] p-4 hover:border-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition-colors"
+                      className="flex items-center justify-between border border-[var(--border-subtle)] p-4 hover:border-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition-colors"
                     >
                       <span className="inline-flex items-center gap-3">
                         <ExternalLink className="w-4 h-4" />

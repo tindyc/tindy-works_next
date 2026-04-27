@@ -160,7 +160,7 @@ export function NotFound() {
       }`}
       onClick={focusInput}
     >
-      <section className="relative mx-auto w-full max-w-5xl min-h-[calc(100vh-120px)] md:min-h-[calc(100vh-148px)] border border-[var(--border-strong)] bg-[var(--bg-base)]/90 backdrop-blur-sm overflow-hidden shadow-[0_20px_60px_var(--shadow-base)]">
+      <section className="relative mx-auto w-full max-w-5xl min-h-[calc(100vh-120px)] md:min-h-[calc(100vh-148px)] border border-[var(--border-subtle)] bg-[var(--bg-base)]/90 backdrop-blur-sm overflow-hidden shadow-[0_20px_60px_var(--shadow-base)]">
         <div className="absolute inset-0 pointer-events-none">
           <p className="absolute right-3 sm:right-8 top-2 sm:top-4 text-[6rem] sm:text-[9rem] md:text-[13rem] leading-none font-bold tracking-[-0.06em] text-[var(--text-primary)]/8 select-none">
             404
@@ -189,7 +189,7 @@ export function NotFound() {
                 key={key}
                 type="button"
                 onClick={() => navigateWithTransition(routeMap[key])}
-                className="min-h-11 sm:min-h-12 px-3 sm:px-4 border border-[var(--border-strong)] bg-[var(--bg-base)] text-[var(--text-primary)] font-mono text-[11px] sm:text-xs uppercase tracking-[0.16em] text-left sm:text-center hover:bg-[var(--text-primary)] hover:text-[var(--bg-base)] hover:shadow-[0_0_24px_rgba(255,255,255,0.22)] active:scale-[0.99] transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--text-primary)]"
+                className="ui-button min-h-11 sm:min-h-12 px-3 sm:px-4 font-mono text-[11px] sm:text-xs uppercase tracking-[0.16em] text-left sm:text-center hover:shadow-[0_0_24px_var(--shadow-base)] active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--text-primary)]"
               >
                 {key}
               </button>
@@ -203,7 +203,7 @@ export function NotFound() {
                   key={entry.id}
                   className={
                     entry.type === 'error'
-                      ? 'text-red-400'
+                      ? 'text-[var(--status-danger)]'
                       : entry.type === 'input'
                         ? 'text-[var(--text-primary)]'
                         : 'text-[var(--text-secondary)]'
@@ -221,7 +221,7 @@ export function NotFound() {
               runCommand(input);
               setInput('');
             }}
-            className="border border-[var(--border-strong)] bg-[var(--bg-base)] px-3 sm:px-4 py-3 sm:py-4"
+            className="border border-[var(--border-subtle)] bg-[var(--bg-base)] px-3 sm:px-4 py-3 sm:py-4"
           >
             <label htmlFor="terminal-input" className="sr-only">
               Terminal command input

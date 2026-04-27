@@ -102,20 +102,20 @@ const isValidPhone = (value: string) => value.replace(/[^\d]/g, '').length >= 7;
 const generateRequestId = () => `REQ-${Math.floor(1000 + Math.random() * 9000)}`;
 
 const getInputClassName = (hasError: boolean) =>
-  `w-full border bg-[var(--bg-base)] px-5 py-4 text-base text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:outline-none transition-colors ${
+  `w-full rounded-xl border bg-[var(--ui-surface)] px-5 py-4 text-base text-[var(--ui-text)] placeholder:text-[var(--text-muted)] focus:outline-none transition-colors ${
     hasError
-      ? 'border-red-500 focus:border-red-500'
-      : 'border-[var(--border-strong)] focus:border-[var(--text-primary)]'
+      ? 'border-[var(--status-danger)] focus:border-[var(--status-danger)]'
+      : 'border-[var(--border-subtle)] focus:border-[var(--text-primary)]'
   }`;
 
 const getTextAreaClassName = (hasError: boolean) =>
   `${getInputClassName(hasError)} resize-y min-h-[180px]`;
 
 const getOptionCardClassName = (isSelected: boolean) =>
-  `w-full border p-6 text-left transition-all duration-300 min-h-[150px] flex gap-4 items-start ${
+  `w-full rounded-xl border p-6 text-left transition-all duration-300 min-h-[150px] flex gap-4 items-start ${
     isSelected
-      ? 'border-[var(--text-primary)] bg-[var(--hover-bg)] text-[var(--text-primary)]'
-      : 'border-[var(--border-strong)] bg-[var(--bg-base)] hover:border-[var(--text-primary)]'
+      ? 'border-[var(--border-strong)] bg-[var(--hover-bg)] text-[var(--ui-text)]'
+      : 'border-[var(--ui-border)] bg-[var(--ui-surface)] text-[var(--ui-text)] hover:border-[var(--border-strong)] hover:bg-[var(--hover-bg)]'
   }`;
 
 function getDescriptionError(value: string) {
@@ -180,7 +180,7 @@ function getValidationErrors({
 function FieldError({ id, message }: { id: string; message?: string }) {
   if (!message) return null;
   return (
-    <p id={id} className="mt-3 text-sm text-red-500" role="alert">
+    <p id={id} className="mt-3 text-sm text-[var(--status-danger)]" role="alert">
       {message}
     </p>
   );
@@ -327,7 +327,7 @@ export default function ReceptionPage() {
         <section className="p-4 md:p-16 flex-grow flex justify-center items-start">
           {step === 'device' && (
             <div className="w-full max-w-6xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="flex flex-col lg:flex-row gap-12 border border-[var(--border-subtle)] p-8 md:p-12 tech-panel bg-[var(--bg-base)]">
+              <div className="ui-card flex flex-col lg:flex-row gap-12 p-8 md:p-12 tech-panel">
                 <div className="w-full lg:w-1/3">
                   <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-4">
                     SUPPORT REQUEST
@@ -346,9 +346,9 @@ export default function ReceptionPage() {
                         key={option.value}
                         type="button"
                         onClick={() => handleDeviceSelect(option.value)}
-                        className="group w-full border border-[var(--border-strong)] bg-[var(--bg-base)] p-6 md:p-8 text-left hover:border-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition-all duration-300 min-h-[140px] md:min-h-[160px] flex gap-5 items-start"
+                        className="ui-card group w-full p-6 md:p-8 text-left hover:border-[var(--border-strong)] hover:bg-[var(--hover-bg)] transition-all duration-300 min-h-[140px] md:min-h-[160px] flex gap-5 items-start"
                       >
-                        <span className="mt-1 rounded-full border border-[var(--border-strong)] p-3 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] group-hover:border-[var(--text-primary)] transition-colors">
+                        <span className="mt-1 rounded-full border border-[var(--border-subtle)] p-3 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] group-hover:border-[var(--text-primary)] transition-colors">
                           <Icon className="w-6 h-6" />
                         </span>
                         <span className="flex-1">
@@ -372,7 +372,7 @@ export default function ReceptionPage() {
               <button
                 type="button"
                 onClick={() => setStep('device')}
-                className="flex items-center space-x-4 text-[var(--text-secondary)] hover:text-[var(--text-primary)] mb-8 transition-colors font-mono text-[10px] uppercase tracking-widest border border-[var(--border-strong)] px-4 py-2 bg-[var(--bg-base)]"
+                className="ui-button mb-8 min-h-10 font-mono text-[10px] uppercase tracking-widest"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
@@ -380,7 +380,7 @@ export default function ReceptionPage() {
 
               <form
                 onSubmit={handleSubmit}
-                className="border border-[var(--border-subtle)] p-8 md:p-12 tech-panel bg-[var(--bg-base)]"
+                className="ui-card p-8 md:p-12 tech-panel"
                 noValidate
               >
                 <input
@@ -403,7 +403,7 @@ export default function ReceptionPage() {
                     </p>
                   </div>
 
-                  <div className="border border-[var(--border-subtle)] p-6 md:p-8 bg-[var(--bg-base)]">
+                  <div className="ui-card p-6 md:p-8">
                     <label htmlFor="support-description" className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-3">
                       What is going wrong?
                     </label>
@@ -424,7 +424,7 @@ export default function ReceptionPage() {
                     <FieldError id="support-description-error" message={shouldShowError('description') ? validationErrors.description : ''} />
                   </div>
 
-                  <div className="border border-[var(--border-subtle)] p-6 md:p-8 bg-[var(--bg-base)]">
+                  <div className="ui-card p-6 md:p-8">
                     <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-4">How should I contact you?</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4" role="radiogroup" aria-label="Preferred contact method">
                       {contactOptions.map((option) => {
@@ -438,7 +438,7 @@ export default function ReceptionPage() {
                             aria-pressed={isSelected}
                             className={getOptionCardClassName(isSelected)}
                           >
-                            <span className="mt-1 rounded-full border border-current p-3">
+                            <span className="mt-1 flex h-12 w-12 items-center justify-center border border-[var(--border-subtle)]">
                               <Icon className="w-6 h-6" />
                             </span>
                             <span className="flex-1">
@@ -474,7 +474,7 @@ export default function ReceptionPage() {
                     )}
                   </div>
 
-                  <div className="border border-[var(--border-subtle)] p-6 md:p-8 bg-[var(--bg-base)]">
+                  <div className="ui-card p-6 md:p-8">
                     <label htmlFor="support-name" className="block font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-3">
                       Your name
                     </label>
@@ -493,14 +493,14 @@ export default function ReceptionPage() {
                     <FieldError id="support-name-error" message={shouldShowError('name') ? validationErrors.name : ''} />
                   </div>
 
-                  <div className="border border-[var(--border-subtle)] p-6 md:p-8 bg-[var(--bg-base)]">
+                  <div className="ui-card p-6 md:p-8">
                     <div className="flex items-start gap-4">
                       <input
                         type="checkbox"
                         id="onBehalf"
                         checked={isOnBehalf}
                         onChange={(event) => handleOnBehalfChange(event.target.checked)}
-                        className="mt-1 w-5 h-5 bg-[var(--bg-base)] border-[var(--border-strong)] accent-[var(--text-primary)]"
+                        className="mt-1 w-5 h-5 bg-[var(--bg-base)] border-[var(--border-subtle)] accent-[var(--text-primary)]"
                       />
                       <div>
                         <label htmlFor="onBehalf" className="text-base text-[var(--text-primary)] leading-relaxed">
@@ -514,7 +514,7 @@ export default function ReceptionPage() {
                   </div>
 
                   {isOnBehalf && (
-                    <div className="border border-[var(--border-subtle)] p-6 md:p-8 bg-[var(--bg-base)] animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="ui-card p-6 md:p-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
                       <div className="flex items-center gap-3 mb-6">
                         <UserRound className="w-5 h-5 text-[var(--text-secondary)]" />
                         <h3 className="font-display text-2xl uppercase tracking-wide">Who needs help?</h3>
@@ -570,7 +570,7 @@ export default function ReceptionPage() {
                             aria-pressed={otherPerson.contactTarget === 'self'}
                             className={getOptionCardClassName(otherPerson.contactTarget === 'self')}
                           >
-                            <span className="mt-1 rounded-full border border-current p-3">
+                            <span className="mt-1 flex h-12 w-12 items-center justify-center border border-[var(--border-subtle)]">
                               <ShieldCheck className="w-6 h-6" />
                             </span>
                             <span className="flex-1">
@@ -587,7 +587,7 @@ export default function ReceptionPage() {
                             aria-pressed={otherPerson.contactTarget === 'other'}
                             className={getOptionCardClassName(otherPerson.contactTarget === 'other')}
                           >
-                            <span className="mt-1 rounded-full border border-current p-3">
+                            <span className="mt-1 flex h-12 w-12 items-center justify-center border border-[var(--border-subtle)]">
                               <UserRound className="w-6 h-6" />
                             </span>
                             <span className="flex-1">
@@ -615,7 +615,7 @@ export default function ReceptionPage() {
                                   aria-pressed={isSelected}
                                   className={getOptionCardClassName(isSelected)}
                                 >
-                                  <span className="mt-1 rounded-full border border-current p-3">
+                                  <span className="mt-1 flex h-12 w-12 items-center justify-center border border-[var(--border-subtle)]">
                                     <Icon className="w-6 h-6" />
                                   </span>
                                   <span className="flex-1">
@@ -675,7 +675,7 @@ export default function ReceptionPage() {
                     <button
                       type="submit"
                       disabled={!canSubmit}
-                      className="bg-[var(--text-primary)] text-[var(--bg-base)] px-8 py-4 font-mono text-[10px] uppercase font-bold tracking-widest hover:bg-neutral-300 transition-colors disabled:opacity-40 disabled:cursor-not-allowed min-w-[220px]"
+                      className="ui-button min-w-[220px] px-8 py-4 font-mono text-[10px] uppercase font-bold tracking-widest"
                     >
                       {isSubmitting ? 'Sending request...' : 'Send request'}
                     </button>
@@ -687,7 +687,7 @@ export default function ReceptionPage() {
 
           {step === 'confirmation' && requestSummary && (
             <div className="w-full max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="border border-[var(--border-subtle)] p-8 md:p-12 lg:p-16 tech-panel bg-[var(--bg-base)]">
+              <div className="ui-card p-8 md:p-12 lg:p-16 tech-panel">
                 <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-4">SYS.RECEIVED</p>
                 <h2 className="font-display text-4xl uppercase tracking-wider mb-4">Request received</h2>
                 <p className="text-[var(--text-secondary)] font-sans text-base md:text-lg leading-relaxed max-w-2xl">
@@ -695,17 +695,17 @@ export default function ReceptionPage() {
                 </p>
 
                 <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="border border-[var(--border-strong)] p-5 bg-[var(--bg-base)]">
+                  <div className="ui-card p-5">
                     <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-2">Contact method</p>
                     <p className="text-lg text-[var(--text-primary)]">{requestSummary.contactMethod}</p>
                   </div>
-                  <div className="border border-[var(--border-strong)] p-5 bg-[var(--bg-base)]">
+                  <div className="ui-card p-5">
                     <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-2">Request ID</p>
                     <p className="text-lg text-[var(--text-primary)]">{requestSummary.id}</p>
                   </div>
                 </div>
 
-                <div className="mt-4 border border-[var(--border-strong)] p-5 bg-[var(--bg-base)]">
+                <div className="ui-card mt-4 p-5">
                   <p className="font-mono text-[10px] uppercase tracking-widest text-[var(--text-secondary)] mb-2">Help topic</p>
                   <p className="text-lg text-[var(--text-primary)]">{requestSummary.device}</p>
                 </div>
@@ -724,7 +724,7 @@ export default function ReceptionPage() {
                 <div className="mt-10">
                   <Link
                     href="/"
-                    className="inline-flex items-center justify-center bg-[var(--text-primary)] text-[var(--bg-base)] px-8 py-4 font-mono text-[10px] uppercase font-bold tracking-widest hover:bg-neutral-300 transition-colors"
+                    className="ui-button px-8 py-4 font-mono text-[10px] uppercase font-bold tracking-widest"
                   >
                     Return to Studio
                   </Link>

@@ -25,7 +25,7 @@ export default function OfficePage() {
             <div>
               <h1 className="font-display text-5xl sm:text-7xl md:text-[10rem] leading-none font-bold tracking-tighter uppercase text-[var(--text-primary)] drop-shadow-md">OFFICE</h1>
             </div>
-            <div className="w-full lg:w-1/3 border border-[var(--border-strong)] p-6 bg-[var(--bg-base)] tech-panel">
+            <div className="w-full lg:w-1/3 border border-[var(--border-subtle)] p-6 bg-[var(--bg-base)] tech-panel">
               <p className="font-mono text-xs leading-relaxed text-[var(--text-secondary)] uppercase tracking-widest">
                 I design and improve systems that work in real environments, balancing technical performance, business value, and long-term maintainability.
               </p>
@@ -66,8 +66,8 @@ export default function OfficePage() {
           </div>
           <div className="lg:col-span-8 flex flex-col gap-16">
 
-            <div className="group relative pl-8 border-l border-[var(--border-strong)] hover:border-[var(--text-primary)] transition-colors">
-              <div className="absolute top-0 -left-1 w-2 h-2 bg-[var(--bg-base)] border border-[var(--text-primary)] group-hover:bg-[var(--text-primary)] transition-colors"></div>
+            <div className="group relative pl-8 border-l border-[var(--border-subtle)] hover:border-[var(--text-primary)] transition-colors">
+              <div className="absolute top-0 -left-1 w-2 h-2 bg-[var(--bg-base)] border border-[var(--text-primary)] group-hover:bg-[var(--hover-bg)] transition-colors"></div>
               <div className="flex flex-col md:flex-row md:justify-between md:items-baseline mb-6 gap-2">
                 <h3 className="font-display text-3xl md:text-4xl uppercase tracking-wider">Enterprise SaaS Stability</h3>
                 <span className="font-mono text-xs text-[var(--text-secondary)] tracking-widest bg-[var(--border-subtle)] py-1 px-3 border border-[var(--border-subtle)]">C / LINUX</span>
@@ -81,8 +81,8 @@ export default function OfficePage() {
               </div>
             </div>
 
-            <div className="group relative pl-8 border-l border-[var(--border-strong)] hover:border-[var(--text-primary)] transition-colors">
-              <div className="absolute top-0 -left-1 w-2 h-2 bg-[var(--bg-base)] border border-[var(--text-primary)] group-hover:bg-[var(--text-primary)] transition-colors"></div>
+            <div className="group relative pl-8 border-l border-[var(--border-subtle)] hover:border-[var(--text-primary)] transition-colors">
+              <div className="absolute top-0 -left-1 w-2 h-2 bg-[var(--bg-base)] border border-[var(--text-primary)] group-hover:bg-[var(--hover-bg)] transition-colors"></div>
               <div className="flex flex-col md:flex-row md:justify-between md:items-baseline mb-6 gap-2">
                 <h3 className="font-display text-3xl md:text-4xl uppercase tracking-wider">Data Integration & Automation</h3>
                 <span className="font-mono text-xs text-[var(--text-secondary)] tracking-widest bg-[var(--border-subtle)] py-1 px-3 border border-[var(--border-subtle)]">APIS / PYTHON</span>
@@ -96,8 +96,8 @@ export default function OfficePage() {
               </div>
             </div>
 
-            <div className="group relative pl-8 border-l border-[var(--border-strong)] hover:border-[var(--text-primary)] transition-colors">
-              <div className="absolute top-0 -left-1 w-2 h-2 bg-[var(--bg-base)] border border-[var(--text-primary)] group-hover:bg-[var(--text-primary)] transition-colors"></div>
+            <div className="group relative pl-8 border-l border-[var(--border-subtle)] hover:border-[var(--text-primary)] transition-colors">
+              <div className="absolute top-0 -left-1 w-2 h-2 bg-[var(--bg-base)] border border-[var(--text-primary)] group-hover:bg-[var(--hover-bg)] transition-colors"></div>
               <div className="flex flex-col md:flex-row md:justify-between md:items-baseline mb-6 gap-2">
                 <h3 className="font-display text-3xl md:text-4xl uppercase tracking-wider">eCommerce & Business Systems</h3>
                 <span className="font-mono text-xs text-[var(--text-secondary)] tracking-widest bg-[var(--border-subtle)] py-1 px-3 border border-[var(--border-subtle)]">SHOPIFY / WP</span>
@@ -111,8 +111,8 @@ export default function OfficePage() {
               </div>
             </div>
 
-            <div className="group relative pl-8 border-l border-[var(--border-strong)] hover:border-[var(--text-primary)] transition-colors">
-              <div className="absolute top-0 -left-1 w-2 h-2 bg-[var(--bg-base)] border border-[var(--text-primary)] group-hover:bg-[var(--text-primary)] transition-colors"></div>
+            <div className="group relative pl-8 border-l border-[var(--border-subtle)] hover:border-[var(--text-primary)] transition-colors">
+              <div className="absolute top-0 -left-1 w-2 h-2 bg-[var(--bg-base)] border border-[var(--text-primary)] group-hover:bg-[var(--hover-bg)] transition-colors"></div>
               <div className="flex flex-col md:flex-row md:justify-between md:items-baseline mb-6 gap-2">
                 <h3 className="font-display text-3xl md:text-4xl uppercase tracking-wider">Technical Programme Delivery</h3>
                 <span className="font-mono text-xs text-[var(--text-secondary)] tracking-widest bg-[var(--border-subtle)] py-1 px-3 border border-[var(--border-subtle)]">FULL STACK</span>
@@ -134,25 +134,25 @@ export default function OfficePage() {
           <div className="flex flex-col gap-8">
             <h2 className="font-mono text-xs text-[var(--text-secondary)] uppercase tracking-widest mb-4">Capabilities</h2>
 
-            <div className="border border-[var(--border-strong)] p-8 relative group hover:bg-[var(--hover-bg)] transition-colors">
+            <div className="border border-[var(--border-subtle)] p-8 relative group hover:bg-[var(--hover-bg)] transition-colors">
               <div className="absolute top-6 right-6 font-mono text-[10px] text-[var(--text-secondary)] uppercase">SYS.DEL</div>
               <h3 className="font-display text-2xl uppercase tracking-wider mb-4">Delivery Under Constraint</h3>
               <p className="text-[var(--text-secondary)] font-sans text-sm leading-relaxed max-w-md">Comfortable working in fast-moving or unclear environments. Focused on getting things done while keeping quality and priorities in check.</p>
             </div>
 
-            <div className="border border-[var(--border-strong)] p-8 relative group hover:bg-[var(--hover-bg)] transition-colors">
+            <div className="border border-[var(--border-subtle)] p-8 relative group hover:bg-[var(--hover-bg)] transition-colors">
               <div className="absolute top-6 right-6 font-mono text-[10px] text-[var(--text-secondary)] uppercase">SYS.INT</div>
               <h3 className="font-display text-2xl uppercase tracking-wider mb-4">Systems & Integration</h3>
               <p className="text-[var(--text-secondary)] font-sans text-sm leading-relaxed max-w-md">Connecting tools and data in a way that reduces manual work and makes systems easier to use. Using automation and AI-driven workflows where it makes sense to cut repetitive tasks and improve efficiency.</p>
             </div>
 
-            <div className="border border-[var(--border-strong)] p-8 relative group hover:bg-[var(--hover-bg)] transition-colors">
+            <div className="border border-[var(--border-subtle)] p-8 relative group hover:bg-[var(--hover-bg)] transition-colors">
               <div className="absolute top-6 right-6 font-mono text-[10px] text-[var(--text-secondary)] uppercase">SYS.DBG</div>
               <h3 className="font-display text-2xl uppercase tracking-wider mb-4">Debugging & Problem Solving</h3>
               <p className="text-[var(--text-secondary)] font-sans text-sm leading-relaxed max-w-md">Patient and methodical when things break. Focused on understanding root causes rather than quick fixes, and comfortable working in unfamiliar codebases.</p>
             </div>
 
-            <div className="border border-[var(--border-strong)] p-8 relative group hover:bg-[var(--hover-bg)] transition-colors">
+            <div className="border border-[var(--border-subtle)] p-8 relative group hover:bg-[var(--hover-bg)] transition-colors">
               <div className="absolute top-6 right-6 font-mono text-[10px] text-[var(--text-secondary)] uppercase">SYS.ALN</div>
               <h3 className="font-display text-2xl uppercase tracking-wider mb-4">Business & Technical Alignment</h3>
               <p className="text-[var(--text-secondary)] font-sans text-sm leading-relaxed max-w-md">Bridging the gap between technical teams and stakeholders so decisions are clear and practical. Used to working across different teams with different levels of technical understanding.</p>
@@ -189,12 +189,12 @@ export default function OfficePage() {
         <section className="p-8 md:p-16 bg-[var(--bg-base)]">
           <div className="flex justify-between items-end mb-12">
             <h2 className="font-mono text-xs text-[var(--text-secondary)] uppercase tracking-widest">Project Showcase</h2>
-            <div className="font-mono text-[10px] bg-[var(--text-primary)] text-[var(--bg-base)] px-2 py-1 uppercase font-bold tracking-widest">Vol. 1</div>
+            <div className="ui-surface rounded-xl px-3 py-1 font-mono text-[10px] uppercase font-bold tracking-widest">Vol. 1</div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.slice(0, 3).map((project) => (
-              <Link key={project.id} href={`/project/${project.id}`} className="group border border-[var(--border-strong)] flex flex-col hover:bg-[var(--hover-bg)] transition-colors p-8 tech-panel relative min-h-[300px] shadow-[0_10px_30px_var(--shadow-base)]">
+              <Link key={project.id} href={`/project/${project.id}`} className="group border border-[var(--border-subtle)] flex flex-col hover:bg-[var(--hover-bg)] transition-colors p-8 tech-panel relative min-h-[300px] shadow-[0_10px_30px_var(--shadow-base)]">
                 <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity text-[var(--text-primary)]">
                   <ArrowUpRight className="w-6 h-6" />
                 </div>
@@ -222,7 +222,7 @@ export default function OfficePage() {
             <p className="text-[var(--text-secondary)] font-sans text-sm leading-relaxed max-w-2xl mb-8">
               I enjoy building clean, practical websites and systems for small businesses and personal projects. I also like helping people automate parts of their work to save time and reduce manual effort. If you have something in mind, feel free to reach out.
             </p>
-            <a href="#" className="inline-block border border-[var(--border-strong)] font-mono text-xs uppercase tracking-widest px-6 py-3 text-[var(--text-primary)] hover:bg-[var(--text-primary)] hover:text-[var(--bg-base)] transition-colors">
+            <a href="#" className="ui-button font-mono text-xs uppercase tracking-widest">
               Start a Project
             </a>
           </div>
