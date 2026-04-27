@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { WeatherData } from '@/hooks/useWeather';
 import { useTheme } from '@/context/ThemeContext';
 import { DigitalPlant } from './DigitalPlant';
@@ -80,10 +81,10 @@ export function WeatherCanvas({ plant, weather, isDay, previewTime, context = 'c
     <section className={`${isCard ? 'flex flex-col h-full' : 'flex-grow flex flex-col'} transition-colors duration-1000 ${bgClass}`}>
 
       {/* Canvas area */}
-      <div className={`relative w-full overflow-hidden ${isCard ? 'h-full' : 'h-[60vh] min-h-[380px] md:min-h-[460px] lg:min-h-[520px]'}`}>
+      <div className={`relative w-full overflow-hidden ${isCard ? 'h-full' : 'flex-1 min-h-[380px] md:min-h-[460px] lg:min-h-[520px]'}`}>
 
-        {/* Time badge */}
-        <div className={`absolute z-30 flex items-center border backdrop-blur-sm ${isCard ? 'top-2 right-2 px-2 py-1' : 'top-4 right-4 md:top-6 md:right-6 lg:top-8 lg:right-8 px-3 py-1.5 md:px-4 md:py-2'} ${overlayBorderClass} ${badgeBg}`}>
+        {/* Time badge — highest layer */}
+        <div className={`absolute z-40 flex items-center border backdrop-blur-sm ${isCard ? 'top-2 right-2 px-2 py-1' : 'top-4 right-4 md:top-6 md:right-6 lg:top-8 lg:right-8 px-3 py-1.5 md:px-4 md:py-2'} ${overlayBorderClass} ${badgeBg}`}>
           <span className={`font-sans font-semibold uppercase tracking-widest ${isCard ? 'text-[9px]' : 'text-[10px]'} ${badgeText}`}>{timeString} {timeLabel}</span>
         </div>
 
@@ -123,26 +124,28 @@ export function WeatherCanvas({ plant, weather, isDay, previewTime, context = 'c
         {/* Ground line */}
         <div className="absolute bottom-0 left-0 w-full h-[1px] bg-current opacity-10 z-10" />
 
-        {/* Plant */}
-        <div className="absolute inset-0 flex items-end justify-center z-20 px-4">
+        {/* Plant — bottom-padded in canvas mode to clear the message overlay */}
+        <div className={`absolute inset-0 flex items-end justify-center z-20 px-4 ${!isCard ? 'pb-20 sm:pb-24 md:pb-28' : ''}`}>
           <div className={`w-full flex items-end ${isCard ? 'max-w-[160px]' : 'max-w-[280px] sm:max-w-[340px] md:max-w-[420px] lg:max-w-[520px]'}`}>
             <DigitalPlant plant={plant} strokeClass={strokeClass} mood={mood} />
           </div>
         </div>
 
-      </div>
-
-      {/* Message panel — canvas context only */}
-      {!isCard && (
-        <>
-          <div className="w-full h-px bg-[var(--border-subtle)] opacity-60" />
-          <div className={`w-full flex-shrink-0 px-4 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6 border-t transition-colors duration-1000 backdrop-blur-md ${overlayBorderClass} ${textClass} ${overlayBg}`}>
+        {/* Message panel — anchored to bottom of canvas, above plant, below time badge */}
+        {!isCard && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            className={`absolute bottom-0 left-0 w-full z-30 px-4 py-3 sm:px-6 sm:py-4 md:px-8 md:py-5 border-t backdrop-blur-md transition-colors duration-1000 ${overlayBorderClass} ${textClass} ${overlayBg}`}
+          >
             <p className="font-sans text-sm sm:text-base leading-relaxed max-w-[420px] line-clamp-3">
               {getContextMessage()}
             </p>
-          </div>
-        </>
-      )}
+          </motion.div>
+        )}
+
+      </div>
 
     </section>
   );
