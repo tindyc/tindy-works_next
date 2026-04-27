@@ -23,6 +23,7 @@ const RATE_LIMIT_TTL_MS = 5 * 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 5;
 const CLEANUP_PROBABILITY = 0.05;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const PHONE_REGEX = /^\+?[0-9\s\-()]{7,}$/;
 
 const rateLimitStore = new Map<string, RateLimitRecord>();
 const ipRequestCounts = new Map<string, IpRequestRecord>();
@@ -110,12 +111,16 @@ export function sanitizePayload(payload: unknown): SanitizedPayload {
 }
 
 export function extractContact(payload: SanitizedPayload): ContactDetails {
-  const contactValue = payload.contactValue ?? payload.email ?? '';
+  const contactMethod = payload.contactMethod ?? (payload.email ? 'email' : '');
+  const isPhoneMethod = contactMethod === 'sms' || contactMethod === 'whatsapp';
+  const contactValue = isPhoneMethod
+    ? (payload.phone ?? payload.contactValue ?? payload.email ?? '')
+    : (payload.contactValue ?? payload.email ?? '');
 
   return {
     email: payload.email ?? '',
     contactValue,
-    contactMethod: payload.contactMethod ?? (payload.email ? 'email' : ''),
+    contactMethod,
     normalizedContactValue: normalizeValue(contactValue).toLowerCase(),
   };
 }
@@ -126,6 +131,10 @@ export function createPreview(content: string): string | undefined {
 
 export function isValidEmail(value: string) {
   return EMAIL_REGEX.test(value);
+}
+
+export function isValidPhone(value: string) {
+  return PHONE_REGEX.test(value.trim());
 }
 
 export function validateContent(content: string) {
@@ -200,6 +209,60 @@ export function validateSupportPayload(payload: SanitizedPayload, contact: Conta
   }
 
   return null;
+}
+
+export function validateSupportFormPayload(
+  payload: SanitizedPayload,
+  contact: ContactDetails,
+  content: string,
+): string | null {
+  if (payload.company) return 'Spam detected.';
+  if (payload.consentRequired !== 'true') return 'Consent is required to submit this form.';
+  if (!payload.name) return 'Name is required.';
+
+  const method = contact.contactMethod;
+  if (!method) return 'Contact method is required.';
+
+  if (method === 'email') {
+    if (!contact.contactValue) return 'Email is required.';
+    if (!isValidEmail(contact.contactValue)) return 'Email is invalid.';
+  } else if (method === 'sms' || method === 'whatsapp') {
+    if (!contact.contactValue) return 'Phone number is required for your selected contact method.';
+    if (!isValidPhone(contact.contactValue)) return 'Please enter a valid phone number.';
+  } else if (method === 'not-sure') {
+    const hasEmail = Boolean(payload.email) && isValidEmail(payload.email ?? '');
+    const hasPhone = Boolean(payload.phone) && isValidPhone(payload.phone ?? '');
+    if (!hasEmail && !hasPhone) return 'Please provide at least an email or phone number.';
+    if (payload.email && !isValidEmail(payload.email)) return 'Email is invalid.';
+    if (payload.phone && !isValidPhone(payload.phone)) return 'Phone number is invalid.';
+  }
+
+  const contentError = validateContent(content);
+  if (contentError === 'Content must be at least 10 characters.') return 'Message must be at least 10 characters.';
+  if (contentError) return contentError;
+
+  let meta: Record<string, string> = {};
+  try { meta = JSON.parse(payload.metadata ?? '{}') as Record<string, string>; } catch { /* ignore */ }
+
+  if (meta.forWho === 'someone-else') {
+    if (!meta.personName?.trim()) return 'Please provide the name of the person needing help.';
+    if (!meta.relationship) return 'Please indicate your relationship to them.';
+  }
+
+  return null;
+}
+
+export function createSupportFingerprint(
+  payload: SanitizedPayload,
+  contact: ContactDetails,
+  content: string,
+  personName: string,
+): string {
+  const name = normalizeValue(payload.name ?? '').toLowerCase();
+  const phone = normalizeValue(payload.phone ?? '').toLowerCase();
+  const normalizedPersonName = normalizeValue(personName).toLowerCase();
+  const message = content.toLowerCase().slice(0, 100);
+  return `${contact.normalizedContactValue}|${phone}|${name}|${normalizedPersonName}|${message}`;
 }
 
 export function createFingerprint(payload: SanitizedPayload, contact: ContactDetails, content: string) {

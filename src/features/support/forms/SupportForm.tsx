@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Copy, ExternalLink, Mail } from 'lucide-react';
 import { SupportNav } from '@/components/layout/SupportNav';
@@ -13,21 +13,31 @@ type Metadata = {
   forWho?: string;
   helpType?: string;
   urgency?: string;
-  contactMethod?: string;
   frequency?: string;
   projectGoal?: string;
   issueType?: string;
   priority?: string;
+  personName?: string;
+  relationship?: string;
+  personContactMethod?: string;
+  personPhone?: string;
+  notes?: string;
 };
 
 type Errors = {
   name?: string;
   email?: string;
+  phone?: string;
   message?: string;
+  contactMethod?: string;
+  personName?: string;
+  relationship?: string;
+  consentRequired?: string;
 };
 
 const SUBMISSION_RATE_LIMIT_MS = 30_000;
 const LAST_SUBMISSION_KEY = 'support-last-submission';
+const PHONE_REGEX = /^\+?[0-9\s\-() ]{7,}$/;
 const ctaRowClassName =
   'flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:gap-4';
 
@@ -43,14 +53,12 @@ const intentIntro: Record<Intent, string> = {
   companionship: 'No video calls. These check-ins are by email, SMS, WhatsApp, or another simple message option.',
 };
 
-const messagePrefill: Record<Intent, string> = {
-  client: '',
-  community: '',
-  companionship: '',
-};
-
 function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}
+
+function isValidPhone(value: string) {
+  return PHONE_REGEX.test(value.trim());
 }
 
 function isLowQualityText(value: string) {
@@ -58,14 +66,47 @@ function isLowQualityText(value: string) {
   return text.length < 10 || /^(.)\1{4,}$/.test(text) || /^[^a-zA-Z]*$/.test(text);
 }
 
-function validate(name: string, email: string, message: string): Errors {
+function validate(
+  name: string,
+  email: string,
+  phone: string,
+  message: string,
+  contactMethod: string,
+  meta: Metadata,
+  consentRequired: boolean,
+): Errors {
   const errors: Errors = {};
 
   if (!name.trim()) errors.name = 'Please enter your name.';
-  if (!email.trim()) errors.email = 'Please enter your email address.';
-  else if (!isValidEmail(email)) errors.email = 'Please enter a valid email address.';
+
+  if (!contactMethod) {
+    errors.contactMethod = 'Please choose how you would like to be contacted.';
+  } else if (contactMethod === 'email') {
+    if (!email.trim()) errors.email = 'Please enter your email address.';
+    else if (!isValidEmail(email)) errors.email = 'Please enter a valid email address.';
+  } else if (contactMethod === 'sms' || contactMethod === 'whatsapp') {
+    if (!phone.trim()) errors.phone = 'Please enter your phone number.';
+    else if (!isValidPhone(phone)) errors.phone = 'Please enter a valid phone number (e.g. +44 7700 000000).';
+  } else if (contactMethod === 'not-sure') {
+    const hasEmail = Boolean(email.trim()) && isValidEmail(email);
+    const hasPhone = Boolean(phone.trim()) && isValidPhone(phone);
+    if (!hasEmail && !hasPhone) {
+      errors.email = 'Please provide at least an email or phone number.';
+    } else {
+      if (email.trim() && !isValidEmail(email)) errors.email = 'Please enter a valid email address.';
+      if (phone.trim() && !isValidPhone(phone)) errors.phone = 'Please enter a valid phone number.';
+    }
+  }
+
   if (!message.trim()) errors.message = 'Please add a message.';
   else if (isLowQualityText(message)) errors.message = 'Please write a short sentence so I have enough context.';
+
+  if (meta.forWho === 'someone-else') {
+    if (!meta.personName?.trim()) errors.personName = 'Please enter their name.';
+    if (!meta.relationship) errors.relationship = 'Please indicate your relationship.';
+  }
+
+  if (!consentRequired) errors.consentRequired = 'Please accept to continue.';
 
   return errors;
 }
@@ -89,6 +130,14 @@ function FieldError({
       aria-live={assertive ? 'assertive' : undefined}
     >
       {message}
+    </p>
+  );
+}
+
+function SectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <p className="border-b border-[var(--border-subtle)] pb-2 text-sm font-semibold uppercase tracking-widest text-[var(--text-secondary)]">
+      {children}
     </p>
   );
 }
@@ -150,9 +199,13 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
   const [intent] = useState<Intent>(resolvedIntent);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [message, setMessage] = useState(messagePrefill[resolvedIntent]);
+  const [phone, setPhone] = useState('');
+  const [contactMethod, setContactMethod] = useState('');
+  const [message, setMessage] = useState('');
   const [company, setCompany] = useState('');
   const [meta, setMeta] = useState<Metadata>({});
+  const [consentRequired, setConsentRequired] = useState(false);
+  const [consentOptional, setConsentOptional] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -163,9 +216,12 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
   const directEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() ?? '';
   const linkedInUrl = process.env.NEXT_PUBLIC_LINKEDIN_URL?.trim() ?? '';
   const githubUrl = process.env.NEXT_PUBLIC_GITHUB_URL?.trim() ?? '';
-  const errors = validate(name, email, message);
+
+  const errors = validate(name, email, phone, message, contactMethod, meta, consentRequired);
   const canSubmit = Object.keys(errors).length === 0 && !isSubmitting;
   const isCommunity = intent !== 'client';
+  const showEmailField = contactMethod === '' || contactMethod === 'email' || contactMethod === 'not-sure';
+  const showPhoneField = contactMethod === 'sms' || contactMethod === 'whatsapp' || contactMethod === 'not-sure';
 
   function showError(field: keyof Errors) {
     return submitAttempted || Boolean(touched[field]);
@@ -175,18 +231,24 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
     setMeta((current) => ({ ...current, [key]: value }));
   }
 
+  function touch(field: string) {
+    setTouched((current) => ({ ...current, [field]: true }));
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitAttempted(true);
     setSubmitError('');
 
     if (company.trim()) return;
+
     if (Object.keys(errors).length > 0) {
       const firstErrorField = Object.keys(errors)[0];
       const el = document.getElementById(`support-${firstErrorField}`);
       el?.focus();
       return;
     }
+
     if (isSubmitting) return;
 
     const lastSubmission = window.localStorage.getItem(LAST_SUBMISSION_KEY);
@@ -198,21 +260,48 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
     setIsSubmitting(true);
 
     try {
+      const metaToSend: Metadata = {
+        ...(meta.forWho ? { forWho: meta.forWho } : {}),
+        ...(meta.helpType ? { helpType: meta.helpType } : {}),
+        ...(meta.frequency ? { frequency: meta.frequency } : {}),
+        ...(meta.projectGoal ? { projectGoal: meta.projectGoal } : {}),
+        ...(meta.issueType ? { issueType: meta.issueType } : {}),
+        ...(meta.priority ? { priority: meta.priority } : {}),
+        ...(meta.forWho === 'someone-else'
+          ? {
+              personName: meta.personName,
+              relationship: meta.relationship,
+              ...(meta.personContactMethod ? { personContactMethod: meta.personContactMethod } : {}),
+              ...(meta.personContactMethod === 'phone' && meta.personPhone
+                ? { personPhone: meta.personPhone }
+                : {}),
+              ...(meta.notes ? { notes: meta.notes } : {}),
+            }
+          : {}),
+      };
+
+      const body: Record<string, unknown> = {
+        intent,
+        name,
+        message,
+        contactMethod,
+        company,
+        consentRequired: true,
+        metadata: JSON.stringify(metaToSend),
+      };
+
+      if (email.trim()) body.email = email.trim();
+      if (phone.trim()) body.phone = phone.trim();
+      if (consentOptional) body.consentOptional = true;
+
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          intent,
-          name,
-          email,
-          message,
-          company,
-          metadata: JSON.stringify(meta),
-        }),
+        body: JSON.stringify(body),
       });
-      const body = (await response.json()) as { error?: string };
 
-      if (!response.ok) throw new Error(body.error ?? 'Unable to send your message right now.');
+      const responseBody = (await response.json()) as { error?: string };
+      if (!response.ok) throw new Error(responseBody.error ?? 'Unable to send your message right now.');
 
       window.localStorage.setItem(LAST_SUBMISSION_KEY, String(Date.now()));
       setIsSubmitted(true);
@@ -270,10 +359,9 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                 </Link>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-8">
-                <label className="sr-only" htmlFor="support-company">
-                  Company
-                </label>
+              <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-10">
+                {/* Honeypot */}
+                <label className="sr-only" htmlFor="support-company">Company</label>
                 <input
                   id="support-company"
                   name="company"
@@ -286,17 +374,170 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                   aria-hidden="true"
                 />
 
+                {/* Request type */}
                 <div className="border border-[var(--border-subtle)] bg-[var(--bg-base)] p-5">
                   <p className="text-base font-semibold text-[var(--text-primary)]">Request type</p>
                   <p className="mt-2 text-base leading-relaxed text-[var(--text-secondary)]">
                     {intentLabels[intent]}
                   </p>
-                  <Link href="/reception" className="mt-4 inline-flex min-h-[56px] items-center text-base font-semibold text-[var(--text-primary)] underline underline-offset-4 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                  <Link
+                    href="/reception"
+                    className="mt-4 inline-flex min-h-[56px] items-center text-base font-semibold text-[var(--text-primary)] underline underline-offset-4 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]"
+                  >
                     Choose a different route
                   </Link>
                 </div>
 
-                <div className="flex flex-col gap-7">
+                {/* Section 1: Who is this for? (community / companionship only) */}
+                {(intent === 'community' || intent === 'companionship') ? (
+                  <div className="flex flex-col gap-5">
+                    <SectionLabel>Who is this for?</SectionLabel>
+                    <ButtonGroup
+                      label="Who needs help?"
+                      options={[
+                        { value: 'myself', label: 'Myself' },
+                        { value: 'someone-else', label: 'Someone else' },
+                      ]}
+                      value={meta.forWho ?? ''}
+                      onChange={(value) => setMetaField('forWho', value)}
+                      large
+                    />
+                    {intent === 'community' ? (
+                      <ButtonGroup
+                        label="What kind of help is needed?"
+                        options={[
+                          { value: 'phone', label: 'Phone or tablet' },
+                          { value: 'computer', label: 'Laptop or computer' },
+                          { value: 'internet', label: 'Email or internet' },
+                          { value: 'not-sure', label: 'Not sure' },
+                        ]}
+                        value={meta.helpType ?? ''}
+                        onChange={(value) => setMetaField('helpType', value)}
+                        large
+                      />
+                    ) : null}
+                    {intent === 'companionship' ? (
+                      <ButtonGroup
+                        label="How often?"
+                        options={[
+                          { value: 'occasional', label: 'Occasional' },
+                          { value: 'weekly', label: 'Weekly' },
+                          { value: 'not-sure', label: 'Not sure' },
+                        ]}
+                        value={meta.frequency ?? ''}
+                        onChange={(value) => setMetaField('frequency', value)}
+                        large
+                      />
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {/* Section 2: How should I reply? */}
+                <div className="flex flex-col gap-5">
+                  <SectionLabel>How should I reply?</SectionLabel>
+                  <ButtonGroup
+                    label="Contact method"
+                    options={[
+                      { value: 'email', label: 'Email' },
+                      { value: 'sms', label: 'SMS' },
+                      { value: 'whatsapp', label: 'WhatsApp' },
+                      { value: 'not-sure', label: 'Not sure' },
+                    ]}
+                    value={contactMethod}
+                    onChange={setContactMethod}
+                  />
+                  <FieldError
+                    id="support-contactMethod-error"
+                    message={showError('contactMethod') ? errors.contactMethod : ''}
+                  />
+
+                  {showEmailField ? (
+                    <div>
+                      <label
+                        htmlFor="support-email"
+                        className="mb-2 block text-base font-semibold text-[var(--text-primary)]"
+                      >
+                        Email
+                        {contactMethod === 'not-sure' ? (
+                          <span className="ml-1 font-normal text-[var(--text-secondary)]">(optional)</span>
+                        ) : null}
+                      </label>
+                      <input
+                        id="support-email"
+                        type="email"
+                        inputMode="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        onBlur={() => touch('email')}
+                        aria-describedby={showError('email') && errors.email ? 'support-email-error' : undefined}
+                        aria-invalid={errors.email ? true : undefined}
+                        className={inputClassName(showError('email') && Boolean(errors.email))}
+                      />
+                      <FieldError id="support-email-error" message={showError('email') ? errors.email : ''} />
+                    </div>
+                  ) : null}
+
+                  {showPhoneField ? (
+                    <div>
+                      <label
+                        htmlFor="support-phone"
+                        className="mb-2 block text-base font-semibold text-[var(--text-primary)]"
+                      >
+                        Phone number
+                        {contactMethod === 'not-sure' ? (
+                          <span className="ml-1 font-normal text-[var(--text-secondary)]">(optional)</span>
+                        ) : null}
+                      </label>
+                      <input
+                        id="support-phone"
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel"
+                        value={phone}
+                        onChange={(event) => setPhone(event.target.value)}
+                        onBlur={() => touch('phone')}
+                        aria-describedby={showError('phone') && errors.phone ? 'support-phone-error' : undefined}
+                        aria-invalid={errors.phone ? true : undefined}
+                        className={inputClassName(showError('phone') && Boolean(errors.phone))}
+                      />
+                      <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary)]">
+                        Only used for the contact method you selected. I won&apos;t call unexpectedly.
+                      </p>
+                      <FieldError id="support-phone-error" message={showError('phone') ? errors.phone : ''} />
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* Section 3: Your details */}
+                <div className="flex flex-col gap-5">
+                  <SectionLabel>Your details</SectionLabel>
+                  <div>
+                    <label
+                      htmlFor="support-name"
+                      className="mb-2 block text-base font-semibold text-[var(--text-primary)]"
+                    >
+                      Your name
+                    </label>
+                    <input
+                      id="support-name"
+                      type="text"
+                      autoComplete="name"
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      onBlur={() => touch('name')}
+                      aria-describedby={showError('name') && errors.name ? 'support-name-error' : undefined}
+                      aria-invalid={errors.name ? true : undefined}
+                      className={inputClassName(showError('name') && Boolean(errors.name))}
+                    />
+                    <FieldError id="support-name-error" message={showError('name') ? errors.name : ''} />
+                  </div>
+                </div>
+
+                {/* Section 4: About the request */}
+                <div className="flex flex-col gap-5">
+                  <SectionLabel>About the request</SectionLabel>
+
                   {intent === 'client' ? (
                     <>
                       <ButtonGroup
@@ -335,129 +576,171 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                     </>
                   ) : null}
 
-                  {intent === 'community' ? (
-                    <>
-                      <ButtonGroup
-                        label="Who is this for?"
-                        options={[
-                          { value: 'myself', label: 'Myself' },
-                          { value: 'someone-else', label: 'Someone else' },
-                        ]}
-                        value={meta.forWho ?? ''}
-                        onChange={(value) => setMetaField('forWho', value)}
-                        large
-                      />
-                      <ButtonGroup
-                        label="What kind of help is needed?"
-                        options={[
-                          { value: 'phone', label: 'Phone or tablet' },
-                          { value: 'computer', label: 'Laptop or computer' },
-                          { value: 'internet', label: 'Email or internet' },
-                          { value: 'not-sure', label: 'Not sure' },
-                        ]}
-                        value={meta.helpType ?? ''}
-                        onChange={(value) => setMetaField('helpType', value)}
-                        large
-                      />
-                    </>
-                  ) : null}
-
-                  {intent === 'companionship' ? (
-                    <>
-                      <ButtonGroup
-                        label="Who is this for?"
-                        options={[
-                          { value: 'myself', label: 'Myself' },
-                          { value: 'someone-else', label: 'Someone else' },
-                        ]}
-                        value={meta.forWho ?? ''}
-                        onChange={(value) => setMetaField('forWho', value)}
-                        large
-                      />
-                      <ButtonGroup
-                        label="Preferred message method"
-                        options={[
-                          { value: 'email', label: 'Email' },
-                          { value: 'sms', label: 'SMS' },
-                          { value: 'whatsapp', label: 'WhatsApp' },
-                          { value: 'not-sure', label: 'Not sure' },
-                        ]}
-                        value={meta.contactMethod ?? ''}
-                        onChange={(value) => setMetaField('contactMethod', value)}
-                        large
-                      />
-                      <ButtonGroup
-                        label="How often?"
-                        options={[
-                          { value: 'occasional', label: 'Occasional' },
-                          { value: 'weekly', label: 'Weekly' },
-                          { value: 'not-sure', label: 'Not sure' },
-                        ]}
-                        value={meta.frequency ?? ''}
-                        onChange={(value) => setMetaField('frequency', value)}
-                        large
-                      />
-                    </>
-                  ) : null}
-                </div>
-
-                <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                   <div>
-                    <label htmlFor="support-name" className="mb-2 block text-base font-semibold text-[var(--text-primary)]">
-                      Name
+                    <label
+                      htmlFor="support-message"
+                      className={`${isCommunity ? 'text-xl' : 'text-base'} mb-2 block font-semibold text-[var(--text-primary)]`}
+                    >
+                      Message
                     </label>
-                    <input
-                      id="support-name"
-                      type="text"
-                      autoComplete="name"
-                      value={name}
-                      onChange={(event) => setName(event.target.value)}
-                      onBlur={() => setTouched((current) => ({ ...current, name: true }))}
-                      aria-describedby={showError('name') && errors.name ? 'support-name-error' : undefined}
-                      aria-invalid={Boolean(errors.name)}
-                      className={inputClassName(showError('name') && Boolean(errors.name))}
+                    <textarea
+                      id="support-message"
+                      value={message}
+                      onChange={(event) => setMessage(event.target.value)}
+                      onBlur={() => touch('message')}
+                      rows={6}
+                      minLength={10}
+                      aria-describedby={showError('message') && errors.message ? 'support-message-error' : undefined}
+                      aria-invalid={errors.message ? true : undefined}
+                      className={`${inputClassName(showError('message') && Boolean(errors.message))} min-h-[180px] resize-y`}
                     />
-                    <FieldError id="support-name-error" message={showError('name') ? errors.name : ''} />
-                  </div>
-
-                  <div>
-                    <label htmlFor="support-email" className="mb-2 block text-base font-semibold text-[var(--text-primary)]">
-                      Email
-                    </label>
-                    <input
-                      id="support-email"
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      onBlur={() => setTouched((current) => ({ ...current, email: true }))}
-                      aria-describedby={showError('email') && errors.email ? 'support-email-error' : undefined}
-                      aria-invalid={Boolean(errors.email)}
-                      className={inputClassName(showError('email') && Boolean(errors.email))}
-                    />
-                    <FieldError id="support-email-error" message={showError('email') ? errors.email : ''} />
+                    <FieldError id="support-message-error" message={showError('message') ? errors.message : ''} />
                   </div>
                 </div>
 
-                <div>
-                  <label htmlFor="support-message" className={`${isCommunity ? 'text-xl' : 'text-base'} mb-2 block font-semibold text-[var(--text-primary)]`}>
-                    Message
-                  </label>
-                  <textarea
-                    id="support-message"
-                    value={message}
-                    onChange={(event) => setMessage(event.target.value)}
-                    onBlur={() => setTouched((current) => ({ ...current, message: true }))}
-                    rows={6}
-                    minLength={10}
-                    aria-describedby={showError('message') && errors.message ? 'support-message-error' : undefined}
-                    aria-invalid={Boolean(errors.message)}
-                    className={`${inputClassName(showError('message') && Boolean(errors.message))} min-h-[180px] resize-y`}
+                {/* Section 5: Person needing help (conditional) */}
+                {meta.forWho === 'someone-else' ? (
+                  <div className="flex flex-col gap-5">
+                    <SectionLabel>Person needing help</SectionLabel>
+                    <p className="text-base leading-relaxed text-[var(--text-secondary)]">
+                      Basic details only. Please do not share medical or sensitive information.
+                    </p>
+
+                    <div>
+                      <label
+                        htmlFor="support-personName"
+                        className="mb-2 block text-base font-semibold text-[var(--text-primary)]"
+                      >
+                        Their name
+                      </label>
+                      <input
+                        id="support-personName"
+                        type="text"
+                        value={meta.personName ?? ''}
+                        onChange={(event) => setMetaField('personName', event.target.value)}
+                        onBlur={() => touch('personName')}
+                        aria-describedby={showError('personName') && errors.personName ? 'support-personName-error' : undefined}
+                        aria-invalid={errors.personName ? true : undefined}
+                        className={inputClassName(showError('personName') && Boolean(errors.personName))}
+                      />
+                      <FieldError id="support-personName-error" message={showError('personName') ? errors.personName : ''} />
+                    </div>
+
+                    <div>
+                      <ButtonGroup
+                        label="Your relationship"
+                        options={[
+                          { value: 'family', label: 'Family member' },
+                          { value: 'friend', label: 'Friend' },
+                          { value: 'client', label: 'Client' },
+                          { value: 'other', label: 'Other' },
+                        ]}
+                        value={meta.relationship ?? ''}
+                        onChange={(value) => setMetaField('relationship', value)}
+                      />
+                      <FieldError
+                        id="support-relationship-error"
+                        message={showError('relationship') ? errors.relationship : ''}
+                      />
+                    </div>
+
+                    <ButtonGroup
+                      label="Can they be contacted directly?"
+                      options={[
+                        { value: 'no', label: 'No, contact me only' },
+                        { value: 'phone', label: 'Yes, via phone' },
+                        { value: 'email', label: 'Yes, via email' },
+                      ]}
+                      value={meta.personContactMethod ?? ''}
+                      onChange={(value) => setMetaField('personContactMethod', value)}
+                    />
+
+                    {meta.personContactMethod === 'phone' ? (
+                      <div>
+                        <label
+                          htmlFor="support-personPhone"
+                          className="mb-2 block text-base font-semibold text-[var(--text-primary)]"
+                        >
+                          Their phone number
+                        </label>
+                        <input
+                          id="support-personPhone"
+                          type="tel"
+                          inputMode="tel"
+                          value={meta.personPhone ?? ''}
+                          onChange={(event) => setMetaField('personPhone', event.target.value)}
+                          className={inputClassName(false)}
+                        />
+                      </div>
+                    ) : null}
+
+                    <div>
+                      <label
+                        htmlFor="support-notes"
+                        className="mb-2 block text-base font-semibold text-[var(--text-primary)]"
+                      >
+                        Anything important I should know?{' '}
+                        <span className="font-normal text-[var(--text-secondary)]">(optional)</span>
+                      </label>
+                      <textarea
+                        id="support-notes"
+                        value={meta.notes ?? ''}
+                        onChange={(event) => setMetaField('notes', event.target.value)}
+                        rows={3}
+                        placeholder="e.g. accessibility needs, urgency, preferences"
+                        className={`${inputClassName(false)} resize-y`}
+                      />
+                    </div>
+                  </div>
+                ) : null}
+
+                {/* Section 6: Consent */}
+                <div className="flex flex-col gap-4">
+                  <SectionLabel>Consent</SectionLabel>
+
+                  <div className="flex items-start gap-4">
+                    <input
+                      id="support-consentRequired"
+                      type="checkbox"
+                      checked={consentRequired}
+                      onChange={(event) => setConsentRequired(event.target.checked)}
+                      onBlur={() => touch('consentRequired')}
+                      className="mt-[3px] h-5 w-5 shrink-0 cursor-pointer accent-[var(--text-primary)]"
+                      aria-describedby={showError('consentRequired') && errors.consentRequired ? 'support-consentRequired-error' : undefined}
+                      aria-invalid={errors.consentRequired ? true : undefined}
+                    />
+                    <label
+                      htmlFor="support-consentRequired"
+                      className="cursor-pointer text-base text-[var(--text-primary)]"
+                    >
+                      I agree to be contacted about this request and understand my data will only be used for this purpose.{' '}
+                      <span className="text-[var(--status-danger)]" aria-hidden="true">*</span>
+                    </label>
+                  </div>
+                  <FieldError
+                    id="support-consentRequired-error"
+                    message={showError('consentRequired') ? errors.consentRequired : ''}
+                    assertive
                   />
-                  <FieldError id="support-message-error" message={showError('message') ? errors.message : ''} />
+
+                  <div className="flex items-start gap-4">
+                    <input
+                      id="support-consentOptional"
+                      type="checkbox"
+                      checked={consentOptional}
+                      onChange={(event) => setConsentOptional(event.target.checked)}
+                      className="mt-[3px] h-5 w-5 shrink-0 cursor-pointer accent-[var(--text-primary)]"
+                    />
+                    <label
+                      htmlFor="support-consentOptional"
+                      className="cursor-pointer text-base text-[var(--text-secondary)]"
+                    >
+                      I&apos;m happy to be contacted about related updates or services.
+                    </label>
+                  </div>
                 </div>
 
+                {/* Submit */}
                 <div className={`${ctaRowClassName} border-t border-[var(--border-subtle)] pt-6`}>
                   <div className="max-w-xl">
                     <p className="text-base leading-relaxed text-[var(--text-secondary)]">
@@ -500,7 +783,10 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
 
                 {directEmail ? (
                   <div className="mt-5 flex flex-col gap-3">
-                    <a href={`mailto:${directEmail}`} className="inline-flex min-h-[56px] items-center gap-3 break-all text-base text-[var(--text-primary)] underline underline-offset-4 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                    <a
+                      href={`mailto:${directEmail}`}
+                      className="inline-flex min-h-[56px] items-center gap-3 break-all text-base text-[var(--text-primary)] underline underline-offset-4 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]"
+                    >
                       <Mail className="h-5 w-5 shrink-0" />
                       <span>{directEmail}</span>
                     </a>

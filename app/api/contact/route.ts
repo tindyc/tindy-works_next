@@ -2,6 +2,7 @@ import {
   createFingerprint,
   createPreview,
   createRequestId,
+  createSupportFingerprint,
   createUnknownIpKey,
   enforceIpRateLimit,
   enforceRateLimit,
@@ -10,6 +11,7 @@ import {
   getClientIp,
   sanitizePayload,
   validateContactPayload,
+  validateSupportFormPayload,
 } from '@/lib/api-utils';
 
 export async function POST(request: Request) {
@@ -28,12 +30,28 @@ export async function POST(request: Request) {
 
   const contact = extractContact(payload);
   const content = getNormalizedContent(payload);
-  const validationError = validateContactPayload(payload, contact, content);
+
+  // Support form submissions include an intent field
+  const isSupport = Boolean(payload.intent);
+
+  let validationError: string | null;
+  let fingerprint: string;
+
+  if (isSupport) {
+    validationError = validateSupportFormPayload(payload, contact, content);
+    let meta: Record<string, string> = {};
+    try { meta = JSON.parse(payload.metadata ?? '{}') as Record<string, string>; } catch { /* ignore */ }
+    const personName = meta.forWho === 'someone-else' ? (meta.personName ?? '') : '';
+    fingerprint = createSupportFingerprint(payload, contact, content, personName);
+  } else {
+    validationError = validateContactPayload(payload, contact, content);
+    fingerprint = createFingerprint(payload, contact, content);
+  }
+
   if (validationError) {
     return Response.json({ error: validationError }, { status: 400 });
   }
 
-  const fingerprint = createFingerprint(payload, contact, content);
   const clientIp = getClientIp(request);
   const safeIp = clientIp === 'unknown'
     ? createUnknownIpKey(fingerprint, contact)
@@ -54,7 +72,7 @@ export async function POST(request: Request) {
 
   console.log('NEW_SUBMISSION', {
     requestId,
-    type: 'contact',
+    type: isSupport ? `support:${payload.intent}` : 'contact',
     contact: contact.contactValue,
     ipType: clientIp === 'unknown' ? 'unknown' : 'real',
     preview,
