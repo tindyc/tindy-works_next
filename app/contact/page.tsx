@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ContactView } from "@/components/contact/ContactView";
+import { ContactForm } from '@/features/contact/ContactForm';
 
 export const metadata: Metadata = {
   title: 'Contact | TINDY_WORKS',
@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <ContactView />;
+  return <ContactForm />;
 }

@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { Copy, ExternalLink, Mail } from 'lucide-react';
-import { SupportNav } from '@/components/SupportNav';
+import { SupportNav } from '@/components/layout/SupportNav';
 
 type Errors = {
   name?: string;
@@ -49,7 +49,7 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-export function ContactView() {
+export function ContactForm() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
@@ -160,7 +160,7 @@ export function ContactView() {
                 <p className="mt-4 max-w-2xl text-lg leading-relaxed text-[var(--text-secondary)]">
                   Thanks. I&apos;ll get back to you soon.
                 </p>
-                <Link href="/reception" className="ui-button mt-8 min-h-[48px] px-6 py-4 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                <Link href="/reception" className="ui-button mt-8 min-h-[56px] px-6 py-4 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
                   Back to reception
                 </Link>
               </div>
@@ -245,7 +245,7 @@ export function ContactView() {
                   <button
                     type="submit"
                     disabled={!canSubmit}
-                    className="ui-button min-h-[48px] w-full px-8 py-4 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)] md:w-auto"
+                    className="ui-button min-h-[56px] w-full px-8 py-4 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)] md:w-auto"
                   >
                     {isSubmitting ? 'Sending...' : 'Send message'}
                   </button>
@@ -265,11 +265,11 @@ export function ContactView() {
 
               {directEmail ? (
                 <div className="mt-5 flex flex-col gap-3">
-                  <a href={`mailto:${directEmail}`} className="inline-flex min-h-[48px] items-center gap-3 break-all text-base text-[var(--text-primary)] underline underline-offset-4 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                  <a href={`mailto:${directEmail}`} className="inline-flex min-h-[56px] items-center gap-3 break-all text-base text-[var(--text-primary)] underline underline-offset-4 focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
                     <Mail className="h-5 w-5 shrink-0" />
                     <span>{directEmail}</span>
                   </a>
-                  <button type="button" onClick={handleCopyEmail} className="ui-button min-h-[48px] w-full px-5 py-3 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                  <button type="button" onClick={handleCopyEmail} className="ui-button min-h-[56px] w-full px-5 py-3 text-base font-semibold focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
                     <Copy className="h-5 w-5" />
                     {copyState === 'copied' ? 'Copied' : copyState === 'error' ? 'Use email link' : 'Copy email'}
                   </button>
@@ -279,13 +279,13 @@ export function ContactView() {
               {(linkedInUrl || githubUrl) ? (
                 <div className="mt-5 grid gap-3">
                   {linkedInUrl ? (
-                    <a href={linkedInUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[48px] items-center gap-3 border border-[var(--border-subtle)] px-4 py-3 text-base text-[var(--text-primary)] hover:bg-[var(--hover-bg)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                    <a href={linkedInUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[56px] items-center gap-3 border border-[var(--border-subtle)] px-4 py-3 text-base text-[var(--text-primary)] hover:bg-[var(--hover-bg)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
                       <ExternalLink className="h-5 w-5" />
                       LinkedIn
                     </a>
                   ) : null}
                   {githubUrl ? (
-                    <a href={githubUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[48px] items-center gap-3 border border-[var(--border-subtle)] px-4 py-3 text-base text-[var(--text-primary)] hover:bg-[var(--hover-bg)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
+                    <a href={githubUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-[56px] items-center gap-3 border border-[var(--border-subtle)] px-4 py-3 text-base text-[var(--text-primary)] hover:bg-[var(--hover-bg)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]">
                       <ExternalLink className="h-5 w-5" />
                       GitHub
                     </a>

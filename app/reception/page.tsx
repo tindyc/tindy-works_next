@@ -1,5 +1,5 @@
-import { ReceptionView } from "@/components/reception/ReceptionView";
+import { Reception } from '@/features/reception/Reception';
 
-export default function ReceptionPage() {
-  return <ReceptionView />;
+export default function Page() {
+  return <Reception />;
 }

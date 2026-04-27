@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from 'framer-motion';
-import { WeatherCanvas } from './WeatherCanvas';
-import { DigitalPlant } from './DigitalPlant';
+import { WeatherCanvas } from '@/components/garden/WeatherCanvas';
+import { DigitalPlant } from '@/components/garden/DigitalPlant';
 import { WeatherData } from '@/hooks/useWeather';
 
 interface MockPlant {
@@ -116,7 +116,7 @@ const interpolatedTimeline = (() => {
   return result;
 })();
 
-export function PlantLabView() {
+export function PlantLab() {
   return (
     <div className="flex flex-col w-full min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-88px)] mt-[64px] md:mt-[88px]">
       <header className="w-full max-w-[1440px] mx-auto border-x border-b border-[var(--border-subtle)] px-6 md:px-12 py-8 md:py-10 bg-[var(--bg-base)]">

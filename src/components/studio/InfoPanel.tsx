@@ -1,1 +1,0 @@
-export { InfoPanel } from '@/components/system/InfoPanel';

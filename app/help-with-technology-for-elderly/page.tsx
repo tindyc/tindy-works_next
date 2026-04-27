@@ -1,5 +1,5 @@
-import { permanentRedirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
-export default function HelpWithTechnologyForElderlyPage() {
-  permanentRedirect('/help-with-tech');
+export default function Page() {
+  redirect('/help-with-tech');
 }

@@ -10,7 +10,7 @@ const projects = [
   { id: "104", title: "eCommerce Automation", tag: "Business Systems" },
 ];
 
-export function OfficeView() {
+export function Office() {
   return (
     <main className="flex-grow w-full max-w-[1440px] mx-auto border-x border-[var(--border-subtle)] flex flex-col bg-[var(--bg-base)] backdrop-blur-sm min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-88px)] mt-[64px] md:mt-[88px]">
       <header className="relative p-8 md:p-16 border-b border-[var(--border-subtle)] bg-[var(--bg-base)] overflow-hidden">

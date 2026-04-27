@@ -1,7 +1,7 @@
-import { Footer } from '@/components/Footer';
-import { SideNav } from '@/components/SideNav';
-import { FloorPlanCanvas } from './FloorPlanCanvas';
-import { InfoPanel } from './InfoPanel';
+import { Footer } from '@/components/layout/Footer';
+import { SideNav } from '@/components/layout/SideNav';
+import { FloorPlanCanvas } from '@/components/studio/FloorPlanCanvas';
+import { InfoPanel } from '@/components/system/InfoPanel';
 
 export function Studio() {
   return (

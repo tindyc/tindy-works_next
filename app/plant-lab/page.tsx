@@ -1,5 +1,5 @@
-import { PlantLabView } from '@/components/garden/PlantLabView';
+import { PlantLab } from '@/features/garden/PlantLab';
 
 export default function Page() {
-  return <PlantLabView />;
+  return <PlantLab />;
 }
