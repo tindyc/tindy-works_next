@@ -1,5 +1,10 @@
-import LegacyApp from "@/legacy-app/LegacyAppNoSSR";
+import { Layout } from "@/components/Layout";
+import { PlantLabPage } from "@/components/pages/PlantLabPage";
 
 export default function Page() {
-  return <LegacyApp />;
+  return (
+    <Layout>
+      <PlantLabPage />
+    </Layout>
+  );
 }

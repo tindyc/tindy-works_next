@@ -1,5 +1,10 @@
-import LegacyApp from "@/legacy-app/LegacyAppNoSSR";
+import { Layout } from "@/components/Layout";
+import { CatsPage } from "@/components/pages/CatsPage";
 
 export default function Page() {
-  return <LegacyApp />;
+  return (
+    <Layout>
+      <CatsPage />
+    </Layout>
+  );
 }

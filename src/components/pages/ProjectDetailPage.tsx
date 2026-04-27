@@ -4,12 +4,11 @@ import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { X, CornerDownRight } from 'lucide-react';
 
-export function ProjectDetail() {
+export function ProjectDetailPage() {
   const params = useParams<{ id?: string }>();
   const router = useRouter();
   const id = params?.id;
 
-  // Mock data
   const project = {
     id: id || '892',
     title: 'Autonomous Supply Chain Sync',
@@ -28,7 +27,6 @@ export function ProjectDetail() {
 
   return (
     <main className="flex-grow w-full max-w-[1440px] mx-auto border-x border-[var(--border-subtle)] flex flex-col bg-[var(--overlay-bg)] backdrop-blur-md min-h-[calc(100vh-64px)] md:min-h-[calc(100vh-88px)] mt-[64px] md:mt-[88px]">
-      
       <div className="flex justify-end p-4 md:p-8 border-b border-[var(--border-subtle)] bg-[var(--bg-base)]">
         <button onClick={() => router.push('/office')} className="ui-button h-11 w-11 p-0 focus:outline-none focus:ring-2 focus:ring-[var(--text-primary)]">
           <span className="sr-only">Close Dossier</span>
@@ -43,8 +41,6 @@ export function ProjectDetail() {
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 flex-grow">
-        
-        {/* Sidebar Info */}
         <aside className="lg:col-span-3 border-b lg:border-b-0 lg:border-r border-[var(--border-subtle)] p-8 space-y-12 bg-[var(--bg-base)] font-mono">
           <div>
             <h3 className="text-[10px] text-[var(--text-secondary)] uppercase tracking-widest mb-3 border-b border-[var(--border-subtle)] pb-2">Sector</h3>
@@ -67,9 +63,7 @@ export function ProjectDetail() {
           </div>
         </aside>
 
-        {/* Main Content */}
         <section className="lg:col-span-9 p-8 md:p-16 lg:p-24 space-y-24 bg-[var(--bg-base)] relative">
-          
           <div className="relative pl-8 border-l-2 border-[var(--text-primary)]">
              <div className="absolute top-0 -left-[11px] w-5 h-5 bg-[var(--bg-base)] border border-[var(--text-primary)] flex items-center justify-center">
                 <div className="w-1.5 h-1.5 bg-[var(--text-primary)]"></div>
@@ -84,12 +78,11 @@ export function ProjectDetail() {
              </div>
              <h2 className="font-mono text-[10px] text-[var(--text-secondary)] tracking-widest uppercase mb-4">02 // Architectural Approach</h2>
              <p className="text-[var(--text-secondary)] leading-relaxed max-w-4xl text-lg md:text-xl font-sans mb-12">{project.approach}</p>
-             
-             {/* Architectural Blueprint Diagram Placeholder */}
+
              <div className="w-full max-w-4xl border border-[var(--border-subtle)] bg-[var(--hover-bg)] p-8 aspect-auto md:aspect-[2/1] flex flex-col relative overflow-hidden tech-panel mt-16 shadow-2xl floor-plan-grid">
                 <div className="absolute top-4 left-4 font-mono text-[8px] text-[var(--text-muted)] uppercase">FIG 1. SYSTEM TOPOLOGY</div>
                 <div className="absolute top-4 right-4 font-mono text-[8px] text-[var(--text-muted)] uppercase">TOP SECRET // CLASSIFIED</div>
-                
+
                 <div className="flex-grow flex items-center justify-center w-full relative z-10 py-12">
                   <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 w-full px-4 md:px-12 mt-4">
                      <div className="w-full md:flex-1 border border-[var(--border-subtle)] p-6 text-center text-[var(--text-primary)] font-mono text-xs uppercase tracking-widest bg-[var(--bg-base)] backdrop-blur-md relative shadow-[0_4px_15px_var(--shadow-base)]">
@@ -110,7 +103,7 @@ export function ProjectDetail() {
                      </div>
                   </div>
                 </div>
-                
+
                 <div className="absolute bottom-4 left-4 right-4 flex justify-between border-t border-[var(--border-subtle)] pt-2 font-mono text-[8px] text-[var(--text-muted)] uppercase">
                   <span>SCALE: NOT TO SCALE</span>
                   <span>CONFIDENTIAL</span>
@@ -132,7 +125,6 @@ export function ProjectDetail() {
                ))}
              </div>
           </div>
-          
         </section>
       </div>
     </main>

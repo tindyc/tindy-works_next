@@ -1,5 +1,10 @@
-import LegacyApp from "@/legacy-app/LegacyAppNoSSR";
+import { Layout } from "@/components/Layout";
+import { NotFoundPage } from "@/components/pages/NotFoundPage";
 
 export default function NotFound() {
-  return <LegacyApp />;
+  return (
+    <Layout>
+      <NotFoundPage />
+    </Layout>
+  );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Sidebar } from '../components/Sidebar';
 import { WeatherCanvas } from '../components/WeatherCanvas';
 import { Tips } from '../components/Tips';
@@ -14,7 +14,7 @@ export function Garden() {
   const plant = usePlant();
   const weather = useWeather();
   const [isDay, setIsDay] = useState(true);
-  const navigate = useNavigate();
+  const router = useRouter();
   const [showCarouselMobile, setShowCarouselMobile] = useState(false);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export function Garden() {
           Digital flora system
         </p>
         <button
-          onClick={() => navigate('/plant-lab')}
+          onClick={() => router.push('/plant-lab')}
           type="button"
           className="ui-button absolute top-8 right-6 md:top-10 md:right-12 text-[10px] font-mono uppercase tracking-widest"
         >

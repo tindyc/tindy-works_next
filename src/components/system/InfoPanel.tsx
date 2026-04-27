@@ -23,7 +23,7 @@ export function InfoPanel() {
 
       <div className="mt-6 lg:mt-12 flex flex-col gap-4 border border-[var(--border-subtle)] p-4 md:p-6 bg-[var(--hover-bg)] font-mono">
         {systemStatuses.map((status) => (
-          <SystemStatus key={status.label} label={status.label} value={status.value} divider={status.divider !== false} />
+          <SystemStatus key={status.label} label={status.label} value={status.value} divider={('divider' in status ? status.divider : true) !== false} />
         ))}
       </div>
 
