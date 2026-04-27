@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import Script from 'next/script';
 import { SupportNav } from '@/components/layout/SupportNav';
 import { primaryCta } from '@/styles/ui';
 
@@ -33,12 +32,10 @@ const steps = [
 export function DigitalCompanionship() {
   return (
     <>
-      {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
-      <Script
+      <script
         id="digital-companionship-json-ld"
         type="application/ld+json"
-        strategy="beforeInteractive"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
 
       <main className="mt-[64px] flex min-h-[calc(100vh-64px)] w-full flex-grow flex-col border-t border-[var(--border-subtle)] bg-[var(--bg-base)] md:mt-[88px] md:min-h-[calc(100vh-88px)]">

@@ -36,10 +36,6 @@ export function SupportNav({ active }: SupportNavProps) {
           Contact
         </Link>
       </div>
-
-      <Link href="/" className="hover:text-[var(--text-primary)] focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)] md:text-right">
-        Studio
-      </Link>
     </nav>
   );
 }
