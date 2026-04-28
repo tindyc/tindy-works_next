@@ -1,8 +1,6 @@
 import { createHash, randomUUID } from 'crypto';
 import { isIP } from 'node:net';
-import { INTENTS, isIntent } from '@/features/support/types/intent';
-
-const [CLIENT_INTENT, , COMPANIONSHIP_INTENT] = INTENTS;
+import { getIntentConfig, isIntent } from '@/features/support/types/intent';
 
 type RateLimitRecord = {
   lastTimestamp: number;
@@ -241,6 +239,7 @@ export function validateSupportFormPayload(
   if (payload.company) return 'Spam detected.';
   if (!payload.intent) return 'Request type is required.';
   if (!isIntent(payload.intent)) return 'Request type is invalid.';
+  const intentConfig = getIntentConfig(payload.intent);
   if (payload.consentRequired !== 'true') return 'Consent is required to submit this form.';
   if (!payload.name) return 'Name is required.';
 
@@ -272,12 +271,12 @@ export function validateSupportFormPayload(
     if (!meta.relationship) return 'Please indicate your relationship to them.';
   }
 
-  if (payload.intent === CLIENT_INTENT) {
+  if (intentConfig.requiresProjectMetadata) {
     if (!meta.projectGoal) return 'Project goal is required.';
     if (!meta.issueType) return 'Project area is required.';
   }
 
-  if (payload.intent === COMPANIONSHIP_INTENT) {
+  if (intentConfig.requiresCompanionshipMetadata) {
     const hasCompanionshipMetadata = Boolean(
       meta.frequency || meta.forWho || meta.personName || meta.notes,
     );

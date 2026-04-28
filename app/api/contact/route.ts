@@ -14,21 +14,7 @@ import {
   validateContactPayload,
   validateSupportFormPayload,
 } from '@/lib/api-utils';
-import { INTENTS, isIntent, type Intent } from '@/features/support/types/intent';
-
-const [CLIENT_INTENT, COMMUNITY_INTENT, COMPANIONSHIP_INTENT] = INTENTS;
-
-const categoryMap: Record<Intent, string> = {
-  [CLIENT_INTENT]: 'PROJECT',
-  [COMMUNITY_INTENT]: 'HELP',
-  [COMPANIONSHIP_INTENT]: 'CHECKIN',
-} as const;
-
-const logTypeMap: Record<Intent, string> = {
-  [CLIENT_INTENT]: 'project',
-  [COMMUNITY_INTENT]: 'community',
-  [COMPANIONSHIP_INTENT]: 'companionship',
-} as const;
+import { getIntentConfig, isIntent, type Intent } from '@/features/support/types/intent';
 
 export async function POST(request: Request) {
   let rawPayload: unknown = null;
@@ -51,6 +37,7 @@ export async function POST(request: Request) {
   const contact = extractContact(payload);
   const content = getNormalizedContent(payload);
   const supportIntent: Intent | null = isIntent(payload.intent) ? payload.intent : null;
+  const supportIntentConfig = supportIntent ? getIntentConfig(supportIntent) : null;
   const isSupport = supportIntent !== null;
   const meta = isSupport ? getSupportMetadata(payload) : {};
 
@@ -92,9 +79,9 @@ export async function POST(request: Request) {
 
   console.log('NEW_SUBMISSION', {
     requestId,
-    type: supportIntent ? logTypeMap[supportIntent] : 'contact',
+    type: supportIntentConfig ? supportIntentConfig.logType : 'contact',
     intent: payload.intent,
-    category: supportIntent ? categoryMap[supportIntent] : 'CONTACT',
+    category: supportIntentConfig ? supportIntentConfig.category : 'CONTACT',
     priority: payload.priority,
     forWho: meta.forWho,
     contact: contact.contactValue,

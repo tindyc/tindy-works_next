@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { SupportNav } from '@/components/layout/SupportNav';
-import { DEFAULT_INTENT, getSupportHref } from '@/features/support/types/intent';
+import { INTENT_CONFIG } from '@/features/support/types/intent';
 import { primaryCta } from '@/styles/ui';
 
 const jsonLd = {
@@ -40,7 +40,7 @@ export function TechSupportServices() {
       />
 
       <main className="mt-[64px] flex min-h-[calc(100vh-64px)] w-full flex-grow flex-col border-t border-[var(--border-subtle)] bg-[var(--bg-base)] md:mt-[88px] md:min-h-[calc(100vh-88px)]">
-        <SupportNav active="client" />
+        <SupportNav active={INTENT_CONFIG.client.supportNavActive} />
 
         <header className="border-b border-[var(--border-subtle)] px-4 py-10 md:px-8 md:py-14 lg:px-16">
           <div className="mx-auto max-w-5xl">
@@ -151,7 +151,7 @@ export function TechSupportServices() {
                 .
               </p>
               <Link
-                href={getSupportHref(DEFAULT_INTENT)}
+                href={INTENT_CONFIG.client.href}
                 className={primaryCta}
               >
                 Start a project request
