@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Copy, ExternalLink, Mail } from 'lucide-react';
 import { SupportNav } from '@/components/layout/SupportNav';
@@ -30,6 +30,9 @@ type Errors = {
   phone?: string;
   message?: string;
   contactMethod?: string;
+  projectGoal?: string;
+  issueType?: string;
+  frequency?: string;
   personName?: string;
   relationship?: string;
   consentRequired?: string;
@@ -46,6 +49,7 @@ const intentLabels: Record<Intent, string> = {
   community: 'Simple tech help',
   companionship: 'Regular check-ins',
 };
+const validIntents = Object.keys(intentLabels);
 
 const intentIntro: Record<Intent, string> = {
   client: 'Share the goal, the issue, or the workflow. If you are not sure, choose the closest options.',
@@ -67,6 +71,7 @@ function isLowQualityText(value: string) {
 }
 
 function validate(
+  intent: Intent,
   name: string,
   email: string,
   phone: string,
@@ -104,6 +109,15 @@ function validate(
   if (meta.forWho === 'someone-else') {
     if (!meta.personName?.trim()) errors.personName = 'Please enter their name.';
     if (!meta.relationship) errors.relationship = 'Please indicate your relationship.';
+  }
+
+  if (intent === 'client') {
+    if (!meta.projectGoal) errors.projectGoal = 'Please choose the closest project goal.';
+    if (!meta.issueType) errors.issueType = 'Please choose the closest project area.';
+  }
+
+  if (intent === 'companionship' && !meta.frequency) {
+    errors.frequency = 'Please choose how often check-ins are needed.';
   }
 
   if (!consentRequired) errors.consentRequired = 'Please accept to continue.';
@@ -193,10 +207,16 @@ interface SupportFormProps {
 }
 
 export function SupportForm({ initialIntent }: SupportFormProps) {
-  const resolvedIntent = ['client', 'community', 'companionship'].includes(initialIntent ?? '')
+  useEffect(() => {
+    if (!validIntents.includes(initialIntent ?? '')) {
+      console.warn('Invalid or missing intent, defaulting to client:', initialIntent);
+    }
+  }, [initialIntent]);
+
+  const resolvedIntent = validIntents.includes(initialIntent ?? '')
     ? (initialIntent as Intent)
     : 'client';
-  const [intent] = useState<Intent>(resolvedIntent);
+  const intent = resolvedIntent;
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -217,7 +237,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
   const linkedInUrl = process.env.NEXT_PUBLIC_LINKEDIN_URL?.trim() ?? '';
   const githubUrl = process.env.NEXT_PUBLIC_GITHUB_URL?.trim() ?? '';
 
-  const errors = validate(name, email, phone, message, contactMethod, meta, consentRequired);
+  const errors = validate(intent, name, email, phone, message, contactMethod, meta, consentRequired);
   const canSubmit = Object.keys(errors).length === 0 && !isSubmitting;
   const isCommunity = intent !== 'client';
   const showEmailField = contactMethod === '' || contactMethod === 'email' || contactMethod === 'not-sure';
@@ -292,6 +312,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
 
       if (email.trim()) body.email = email.trim();
       if (phone.trim()) body.phone = phone.trim();
+      if (meta.priority) body.priority = meta.priority;
       if (consentOptional) body.consentOptional = true;
 
       const response = await fetch('/api/contact', {
@@ -363,6 +384,12 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                 {/* Honeypot */}
                 <label className="sr-only" htmlFor="support-company">Company</label>
                 <input
+                  name="intent"
+                  type="hidden"
+                  value={intent}
+                />
+
+                <input
                   id="support-company"
                   name="company"
                   type="text"
@@ -417,17 +444,23 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                       />
                     ) : null}
                     {intent === 'companionship' ? (
-                      <ButtonGroup
-                        label="How often?"
-                        options={[
-                          { value: 'occasional', label: 'Occasional' },
-                          { value: 'weekly', label: 'Weekly' },
-                          { value: 'not-sure', label: 'Not sure' },
-                        ]}
-                        value={meta.frequency ?? ''}
-                        onChange={(value) => setMetaField('frequency', value)}
-                        large
-                      />
+                      <>
+                        <ButtonGroup
+                          label="How often?"
+                          options={[
+                            { value: 'occasional', label: 'Occasional' },
+                            { value: 'weekly', label: 'Weekly' },
+                            { value: 'not-sure', label: 'Not sure' },
+                          ]}
+                          value={meta.frequency ?? ''}
+                          onChange={(value) => setMetaField('frequency', value)}
+                          large
+                        />
+                        <FieldError
+                          id="support-frequency-error"
+                          message={showError('frequency') ? errors.frequency : ''}
+                        />
+                      </>
                     ) : null}
                   </div>
                 ) : null}
@@ -552,6 +585,10 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                         value={meta.projectGoal ?? ''}
                         onChange={(value) => setMetaField('projectGoal', value)}
                       />
+                      <FieldError
+                        id="support-projectGoal-error"
+                        message={showError('projectGoal') ? errors.projectGoal : ''}
+                      />
                       <ButtonGroup
                         label="What area is it in?"
                         options={[
@@ -562,6 +599,10 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                         ]}
                         value={meta.issueType ?? ''}
                         onChange={(value) => setMetaField('issueType', value)}
+                      />
+                      <FieldError
+                        id="support-issueType-error"
+                        message={showError('issueType') ? errors.issueType : ''}
                       />
                       <ButtonGroup
                         label="Priority"

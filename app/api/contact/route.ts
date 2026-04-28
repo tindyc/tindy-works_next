@@ -7,12 +7,26 @@ import {
   enforceIpRateLimit,
   enforceRateLimit,
   extractContact,
+  getSupportMetadata,
   getNormalizedContent,
   getClientIp,
+  isSupportIntent,
   sanitizePayload,
   validateContactPayload,
   validateSupportFormPayload,
 } from '@/lib/api-utils';
+
+const categoryMap = {
+  client: 'PROJECT',
+  community: 'HELP',
+  companionship: 'CHECKIN',
+} as const;
+
+const logTypeMap = {
+  client: 'project',
+  community: 'community',
+  companionship: 'companionship',
+} as const;
 
 export async function POST(request: Request) {
   let rawPayload: unknown = null;
@@ -28,24 +42,28 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Invalid submission.' }, { status: 400 });
   }
 
+  if (!payload.intent) {
+    return Response.json({ error: 'Request type is required.' }, { status: 400 });
+  }
+
   const contact = extractContact(payload);
   const content = getNormalizedContent(payload);
-
-  // Support form submissions include an intent field
-  const isSupport = Boolean(payload.intent);
+  const isSupport = isSupportIntent(payload.intent);
+  const supportIntent = isSupport ? (payload.intent as keyof typeof categoryMap) : null;
+  const meta = isSupport ? getSupportMetadata(payload) : {};
 
   let validationError: string | null;
   let fingerprint: string;
 
   if (isSupport) {
     validationError = validateSupportFormPayload(payload, contact, content);
-    let meta: Record<string, string> = {};
-    try { meta = JSON.parse(payload.metadata ?? '{}') as Record<string, string>; } catch { /* ignore */ }
     const personName = meta.forWho === 'someone-else' ? (meta.personName ?? '') : '';
     fingerprint = createSupportFingerprint(payload, contact, content, personName);
-  } else {
+  } else if (payload.intent === 'general') {
     validationError = validateContactPayload(payload, contact, content);
     fingerprint = createFingerprint(payload, contact, content);
+  } else {
+    return Response.json({ error: 'Request type is invalid.' }, { status: 400 });
   }
 
   if (validationError) {
@@ -72,7 +90,11 @@ export async function POST(request: Request) {
 
   console.log('NEW_SUBMISSION', {
     requestId,
-    type: isSupport ? `support:${payload.intent}` : 'contact',
+    type: supportIntent ? logTypeMap[supportIntent] : 'contact',
+    intent: payload.intent,
+    category: supportIntent ? categoryMap[supportIntent] : 'CONTACT',
+    priority: payload.priority,
+    forWho: meta.forWho,
     contact: contact.contactValue,
     ipType: clientIp === 'unknown' ? 'unknown' : 'real',
     preview,

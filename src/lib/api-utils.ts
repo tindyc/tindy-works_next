@@ -17,6 +17,7 @@ type ContactDetails = {
   contactMethod: string;
   normalizedContactValue: string;
 };
+type SupportIntent = 'client' | 'community' | 'companionship';
 
 const RATE_LIMIT_WINDOW_MS = 30_000;
 const RATE_LIMIT_TTL_MS = 5 * 60 * 1000;
@@ -24,6 +25,7 @@ const MAX_REQUESTS_PER_WINDOW = 5;
 const CLEANUP_PROBABILITY = 0.05;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PHONE_REGEX = /^\+?[0-9\s\-()]{7,}$/;
+const SUPPORT_INTENTS = ['client', 'community', 'companionship'] as const;
 
 const rateLimitStore = new Map<string, RateLimitRecord>();
 const ipRequestCounts = new Map<string, IpRequestRecord>();
@@ -137,6 +139,30 @@ export function isValidPhone(value: string) {
   return PHONE_REGEX.test(value.trim());
 }
 
+export function isSupportIntent(intent: string): intent is SupportIntent {
+  return (SUPPORT_INTENTS as readonly string[]).includes(intent);
+}
+
+export function getSupportMetadata(payload: SanitizedPayload): Record<string, string> {
+  try {
+    const metadata = JSON.parse(payload.metadata ?? '{}') as unknown;
+
+    if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) {
+      return {};
+    }
+
+    const sanitized: Record<string, string> = {};
+
+    for (const [key, value] of Object.entries(metadata)) {
+      sanitized[key] = sanitizeValue(value);
+    }
+
+    return sanitized;
+  } catch {
+    return {};
+  }
+}
+
 export function validateContent(content: string) {
   if (content.length < 10) {
     return 'Content must be at least 10 characters.';
@@ -217,6 +243,8 @@ export function validateSupportFormPayload(
   content: string,
 ): string | null {
   if (payload.company) return 'Spam detected.';
+  if (!payload.intent) return 'Request type is required.';
+  if (!isSupportIntent(payload.intent)) return 'Request type is invalid.';
   if (payload.consentRequired !== 'true') return 'Consent is required to submit this form.';
   if (!payload.name) return 'Name is required.';
 
@@ -241,12 +269,26 @@ export function validateSupportFormPayload(
   if (contentError === 'Content must be at least 10 characters.') return 'Message must be at least 10 characters.';
   if (contentError) return contentError;
 
-  let meta: Record<string, string> = {};
-  try { meta = JSON.parse(payload.metadata ?? '{}') as Record<string, string>; } catch { /* ignore */ }
+  const meta = getSupportMetadata(payload);
 
   if (meta.forWho === 'someone-else') {
     if (!meta.personName?.trim()) return 'Please provide the name of the person needing help.';
     if (!meta.relationship) return 'Please indicate your relationship to them.';
+  }
+
+  if (payload.intent === 'client') {
+    if (!meta.projectGoal) return 'Project goal is required.';
+    if (!meta.issueType) return 'Project area is required.';
+  }
+
+  if (payload.intent === 'companionship') {
+    const hasCompanionshipMetadata = Boolean(
+      meta.frequency || meta.forWho || meta.personName || meta.notes,
+    );
+
+    if (!hasCompanionshipMetadata) {
+      return 'Please choose how often check-ins are needed or add check-in details.';
+    }
   }
 
   return null;
