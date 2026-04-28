@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { isValidEmail, isValidPhone } from '@/utils/contactValidation';
 
 export type TerminalFormData = Record<string, string>;
 
@@ -45,24 +46,13 @@ type UseTerminalFlowOptions<TContext> = {
   resetKey?: string | number;
 };
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_REGEX = /^[+]?[(]?[0-9\s\-().]{7,}$/;
-
 export const terminalValidators = {
   required: ({ value }: ValidationContext<unknown>) =>
     value.trim() ? null : 'This field is required.',
-  email: ({ value }: ValidationContext<unknown>) => {
-    if (!value.trim()) {
-      return null;
-    }
-    return EMAIL_REGEX.test(value.trim()) ? null : 'Please enter a valid email address.';
-  },
-  phone: ({ value }: ValidationContext<unknown>) => {
-    if (!value.trim()) {
-      return null;
-    }
-    return PHONE_REGEX.test(value.trim()) ? null : 'Please enter a valid phone number.';
-  },
+  email: ({ value }: ValidationContext<unknown>) =>
+    !value.trim() || isValidEmail(value) ? null : 'Please enter a valid email address.',
+  phone: ({ value }: ValidationContext<unknown>) =>
+    !value.trim() || isValidPhone(value) ? null : 'Please enter a valid phone number.',
 };
 
 function resolveValidationRule<TContext>(

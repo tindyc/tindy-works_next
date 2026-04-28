@@ -7,6 +7,8 @@ import { SupportNav } from '@/components/layout/SupportNav';
 import { getIntentConfig, type Intent } from '@/features/support/types/intent';
 import { inputClassName } from '@/styles/forms';
 import { primaryCta, primaryCtaBlock, secondaryCta } from '@/styles/ui';
+import { type ContactMethod, validateContact, isValidEmail } from '@/utils/contactValidation';
+import { useContactFields } from '@/hooks/useContactFields';
 
 type Metadata = {
   forWho?: string;
@@ -20,6 +22,7 @@ type Metadata = {
   relationship?: string;
   personContactMethod?: string;
   personPhone?: string;
+  personEmail?: string;
   notes?: string;
 };
 
@@ -34,22 +37,14 @@ type Errors = {
   frequency?: string;
   personName?: string;
   relationship?: string;
+  personEmail?: string;
   consentRequired?: string;
 };
 
 const SUBMISSION_RATE_LIMIT_MS = 30_000;
 const LAST_SUBMISSION_KEY = 'support-last-submission';
-const PHONE_REGEX = /^\+?[0-9\s\-() ]{7,}$/;
 const ctaRowClassName =
   'flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:gap-4';
-
-function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-}
-
-function isValidPhone(value: string) {
-  return PHONE_REGEX.test(value.trim());
-}
 
 function isLowQualityText(value: string) {
   const text = value.trim();
@@ -62,7 +57,7 @@ function validate(
   email: string,
   phone: string,
   message: string,
-  contactMethod: string,
+  contactMethod: ContactMethod,
   meta: Metadata,
   consentRequired: boolean,
 ): Errors {
@@ -71,24 +66,7 @@ function validate(
 
   if (!name.trim()) errors.name = 'Please enter your name.';
 
-  if (!contactMethod) {
-    errors.contactMethod = 'Please choose how you would like to be contacted.';
-  } else if (contactMethod === 'email') {
-    if (!email.trim()) errors.email = 'Please enter your email address.';
-    else if (!isValidEmail(email)) errors.email = 'Please enter a valid email address.';
-  } else if (contactMethod === 'sms' || contactMethod === 'whatsapp') {
-    if (!phone.trim()) errors.phone = 'Please enter your phone number.';
-    else if (!isValidPhone(phone)) errors.phone = 'Please enter a valid phone number (e.g. +44 7700 000000).';
-  } else if (contactMethod === 'not-sure') {
-    const hasEmail = Boolean(email.trim()) && isValidEmail(email);
-    const hasPhone = Boolean(phone.trim()) && isValidPhone(phone);
-    if (!hasEmail && !hasPhone) {
-      errors.email = 'Please provide at least an email or phone number.';
-    } else {
-      if (email.trim() && !isValidEmail(email)) errors.email = 'Please enter a valid email address.';
-      if (phone.trim() && !isValidPhone(phone)) errors.phone = 'Please enter a valid phone number.';
-    }
-  }
+  Object.assign(errors, validateContact(contactMethod, email, phone));
 
   if (!message.trim()) errors.message = 'Please add a message.';
   else if (isLowQualityText(message)) errors.message = 'Please write a short sentence so I have enough context.';
@@ -96,6 +74,10 @@ function validate(
   if (meta.forWho === 'someone-else') {
     if (!meta.personName?.trim()) errors.personName = 'Please enter their name.';
     if (!meta.relationship) errors.relationship = 'Please indicate your relationship.';
+    if (meta.personContactMethod === 'email') {
+      if (!meta.personEmail?.trim()) errors.personEmail = 'Please enter their email address.';
+      else if (!isValidEmail(meta.personEmail)) errors.personEmail = 'Please enter a valid email address.';
+    }
   }
 
   if (intentConfig.validation.requiresProjectMetadata) {
@@ -197,9 +179,16 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
   const intent = initialIntent;
   const intentConfig = getIntentConfig(intent);
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [contactMethod, setContactMethod] = useState('');
+  const {
+    contactMethod,
+    email,
+    phone,
+    setEmail,
+    setPhone,
+    handleContactMethodChange,
+    showEmail: showEmailField,
+    showPhone: showPhoneField,
+  } = useContactFields();
   const [message, setMessage] = useState('');
   const [company, setCompany] = useState('');
   const [meta, setMeta] = useState<Metadata>({});
@@ -219,8 +208,6 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
   const errors = validate(intent, name, email, phone, message, contactMethod, meta, consentRequired);
   const canSubmit = Object.keys(errors).length === 0 && !isSubmitting;
   const isCommunity = intentConfig.behaviour.useCommunitySizing;
-  const showEmailField = contactMethod === '' || contactMethod === 'email' || contactMethod === 'not-sure';
-  const showPhoneField = contactMethod === 'sms' || contactMethod === 'whatsapp' || contactMethod === 'not-sure';
 
   function showError(field: keyof Errors) {
     return submitAttempted || Boolean(touched[field]);
@@ -228,6 +215,15 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
 
   function setMetaField(key: keyof Metadata, value: string) {
     setMeta((current) => ({ ...current, [key]: value }));
+  }
+
+  function handlePersonContactMethodChange(value: string) {
+    setMeta((current) => ({
+      ...current,
+      personContactMethod: value,
+      personPhone: value === 'phone' ? current.personPhone : '',
+      personEmail: value === 'email' ? current.personEmail : '',
+    }));
   }
 
   function touch(field: string) {
@@ -273,6 +269,9 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
               ...(meta.personContactMethod ? { personContactMethod: meta.personContactMethod } : {}),
               ...(meta.personContactMethod === 'phone' && meta.personPhone
                 ? { personPhone: meta.personPhone }
+                : {}),
+              ...(meta.personContactMethod === 'email' && meta.personEmail
+                ? { personEmail: meta.personEmail }
                 : {}),
               ...(meta.notes ? { notes: meta.notes } : {}),
             }
@@ -456,7 +455,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                       { value: 'not-sure', label: 'Not sure' },
                     ]}
                     value={contactMethod}
-                    onChange={setContactMethod}
+                    onChange={handleContactMethodChange}
                   />
                   <FieldError
                     id="support-contactMethod-error"
@@ -470,9 +469,8 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                         className="mb-2 block text-base font-semibold text-[var(--text-primary)]"
                       >
                         Email
-                        {contactMethod === 'not-sure' ? (
-                          <span className="ml-1 font-normal text-[var(--text-secondary)]">(optional)</span>
-                        ) : null}
+                        {contactMethod === 'email' && <span className="ml-1 text-[var(--status-danger)]" aria-hidden="true">*</span>}
+                        {contactMethod === 'not-sure' && <span className="ml-1 font-normal text-[var(--text-secondary)]">(optional)</span>}
                       </label>
                       <input
                         id="support-email"
@@ -497,9 +495,8 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                         className="mb-2 block text-base font-semibold text-[var(--text-primary)]"
                       >
                         Phone number
-                        {contactMethod === 'not-sure' ? (
-                          <span className="ml-1 font-normal text-[var(--text-secondary)]">(optional)</span>
-                        ) : null}
+                        {(contactMethod === 'sms' || contactMethod === 'whatsapp') && <span className="ml-1 text-[var(--status-danger)]" aria-hidden="true">*</span>}
+                        {contactMethod === 'not-sure' && <span className="ml-1 font-normal text-[var(--text-secondary)]">(optional)</span>}
                       </label>
                       <input
                         id="support-phone"
@@ -672,7 +669,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                         { value: 'email', label: 'Yes, via email' },
                       ]}
                       value={meta.personContactMethod ?? ''}
-                      onChange={(value) => setMetaField('personContactMethod', value)}
+                      onChange={handlePersonContactMethodChange}
                     />
 
                     {meta.personContactMethod === 'phone' ? (
@@ -690,6 +687,33 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                           value={meta.personPhone ?? ''}
                           onChange={(event) => setMetaField('personPhone', event.target.value)}
                           className={inputClassName(false)}
+                        />
+                      </div>
+                    ) : null}
+
+                    {meta.personContactMethod === 'email' ? (
+                      <div>
+                        <label
+                          htmlFor="support-personEmail"
+                          className="mb-2 block text-base font-semibold text-[var(--text-primary)]"
+                        >
+                          Their email address
+                          <span className="ml-1 text-[var(--status-danger)]" aria-hidden="true">*</span>
+                        </label>
+                        <input
+                          id="support-personEmail"
+                          type="email"
+                          inputMode="email"
+                          value={meta.personEmail ?? ''}
+                          onChange={(event) => setMetaField('personEmail', event.target.value)}
+                          onBlur={() => touch('personEmail')}
+                          aria-describedby={showError('personEmail') && errors.personEmail ? 'support-personEmail-error' : undefined}
+                          aria-invalid={errors.personEmail ? true : undefined}
+                          className={inputClassName(showError('personEmail') && Boolean(errors.personEmail))}
+                        />
+                        <FieldError
+                          id="support-personEmail-error"
+                          message={showError('personEmail') ? errors.personEmail : ''}
                         />
                       </div>
                     ) : null}

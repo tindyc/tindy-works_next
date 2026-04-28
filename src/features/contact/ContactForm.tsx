@@ -6,6 +6,7 @@ import { Copy, ExternalLink, Mail } from 'lucide-react';
 import { SupportNav } from '@/components/layout/SupportNav';
 import { inputClassName } from '@/styles/forms';
 import { primaryCta, primaryCtaBlock, secondaryCta } from '@/styles/ui';
+import { isValidEmail } from '@/utils/contactValidation';
 
 type Errors = {
   name?: string;
@@ -17,10 +18,6 @@ const SUBMISSION_RATE_LIMIT_MS = 30_000;
 const LAST_SUBMISSION_KEY = 'contact-last-submission';
 const ctaRowClassName =
   'flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:gap-4';
-
-function isValidEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-}
 
 function validate(name: string, email: string, message: string): Errors {
   const errors: Errors = {};
