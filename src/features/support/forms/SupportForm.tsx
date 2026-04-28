@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Copy, ExternalLink, Mail } from 'lucide-react';
 import { SupportNav } from '@/components/layout/SupportNav';
@@ -49,7 +49,6 @@ const intentLabels: Record<Intent, string> = {
   community: 'Simple tech help',
   companionship: 'Regular check-ins',
 };
-const validIntents = Object.keys(intentLabels);
 
 const intentIntro: Record<Intent, string> = {
   client: 'Share the goal, the issue, or the workflow. If you are not sure, choose the closest options.',
@@ -203,20 +202,11 @@ function ButtonGroup({
 }
 
 interface SupportFormProps {
-  initialIntent?: string;
+  initialIntent: Intent;
 }
 
 export function SupportForm({ initialIntent }: SupportFormProps) {
-  useEffect(() => {
-    if (!validIntents.includes(initialIntent ?? '')) {
-      console.warn('Invalid or missing intent, defaulting to client:', initialIntent);
-    }
-  }, [initialIntent]);
-
-  const resolvedIntent = validIntents.includes(initialIntent ?? '')
-    ? (initialIntent as Intent)
-    : 'client';
-  const intent = resolvedIntent;
+  const intent = initialIntent;
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
