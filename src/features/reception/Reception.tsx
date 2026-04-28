@@ -2,7 +2,7 @@ import { Mail, Monitor, Users } from 'lucide-react';
 import { CTAButton, CTARow } from '@/components/ui/CTA';
 
 const cardClassName = 'flex h-full flex-col border border-[var(--border-subtle)] p-6 md:p-8';
-const cardBodyClassName = 'flex h-full flex-col justify-between gap-6';
+const cardBodyClassName = 'flex h-full flex-col gap-6';
 
 export function Reception() {
   return (
@@ -22,15 +22,15 @@ export function Reception() {
           aria-labelledby="client-heading"
           className={`${cardClassName} border-2 border-[var(--border-strong)] bg-[var(--ui-surface)]`}
         >
-          <div className="flex flex-col gap-6">
-            <div className="grid gap-5 sm:grid-cols-[3.5rem_1fr]">
+          <div className={cardBodyClassName}>
+            <div className="flex gap-5">
               <span
-                className="flex h-14 w-14 items-center justify-center border border-[var(--border-strong)] bg-[var(--bg-base)] text-[var(--text-primary)]"
+                className="flex h-14 w-14 shrink-0 items-center justify-center border border-[var(--border-strong)] bg-[var(--bg-base)] text-[var(--text-primary)]"
                 aria-hidden="true"
               >
                 <Monitor className="h-7 w-7" />
               </span>
-              <div>
+              <div className="flex flex-col">
                 <p className="mb-3 text-base font-semibold text-[var(--text-primary)]">
                   Client
                 </p>
@@ -43,14 +43,14 @@ export function Reception() {
                 <p className="mt-4 max-w-3xl text-lg leading-relaxed text-[var(--text-secondary)]">
                   Get help with technical planning, build work, automation, bugs, or improving an existing digital product.
                 </p>
+
+                <CTARow className="mt-4">
+                  <CTAButton href="/tech-support-services" variant="primaryStrong">
+                    Explore client services
+                  </CTAButton>
+                </CTARow>
               </div>
             </div>
-
-            <CTARow>
-              <CTAButton href="/tech-support-services" variant="primaryStrong">
-                Explore client services
-              </CTAButton>
-            </CTARow>
           </div>
         </section>
 
@@ -61,14 +61,14 @@ export function Reception() {
             className={`${cardClassName} bg-[var(--ui-surface)]`}
           >
             <div className={cardBodyClassName}>
-              <div className="grid gap-5 sm:grid-cols-[3rem_1fr]">
+              <div className="flex gap-5">
                 <span
-                  className="flex h-12 w-12 items-center justify-center border border-[var(--border-strong)] bg-[var(--bg-base)] text-[var(--text-primary)]"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center border border-[var(--border-strong)] bg-[var(--bg-base)] text-[var(--text-primary)]"
                   aria-hidden="true"
                 >
                   <Users className="h-6 w-6" />
                 </span>
-                <div>
+                <div className="flex flex-col">
                   <p className="mb-3 text-base font-semibold text-[var(--text-primary)]">
                     Community
                   </p>
@@ -81,10 +81,8 @@ export function Reception() {
                   <p className="mt-4 text-lg leading-relaxed text-[var(--text-secondary)]">
                     Clear, calm support for phones, tablets, accounts, video calls, online forms, and other day-to-day technology.
                   </p>
-                </div>
 
-                <div className="sm:col-start-2">
-                  <CTARow className="mt-6">
+                  <CTARow className="mt-4">
                     <CTAButton href="/help-with-tech" variant="primary">
                       Get help with technology
                     </CTAButton>
@@ -103,34 +101,37 @@ export function Reception() {
             className={cardClassName}
           >
             <div className={cardBodyClassName}>
-              <span
-                className="flex h-12 w-12 items-center justify-center border border-[var(--border-subtle)] bg-[var(--ui-surface)] text-[var(--text-primary)]"
-                aria-hidden="true"
-              >
-                <Mail className="h-6 w-6" />
-              </span>
-              <div>
-                <p className="mb-3 text-base font-semibold text-[var(--text-primary)]">
-                  Contact
-                </p>
-                <h2
-                  id="contact-heading"
-                  className="font-display text-2xl font-semibold leading-tight text-[var(--text-primary)] md:text-3xl"
+              <div className="flex gap-5">
+                <span
+                  className="flex h-12 w-12 shrink-0 items-center justify-center border border-[var(--border-subtle)] bg-[var(--ui-surface)] text-[var(--text-primary)]"
+                  aria-hidden="true"
                 >
-                  General enquiries
-                </h2>
-                <p className="mt-4 text-base leading-relaxed text-[var(--text-secondary)]">
-                  Use this route for questions, introductions, or anything that does not fit the other paths.
-                </p>
-                <p className="mt-4 text-base leading-relaxed text-[var(--text-secondary)]">
-                  If you are not sure where to start, send a message and I will point you in the right direction.
-                </p>
+                  <Mail className="h-6 w-6" />
+                </span>
+                <div className="flex flex-col">
+                  <p className="mb-3 text-base font-semibold text-[var(--text-primary)]">
+                    Contact
+                  </p>
+                  <h2
+                    id="contact-heading"
+                    className="font-display text-2xl font-semibold leading-tight text-[var(--text-primary)] md:text-3xl"
+                  >
+                    General enquiries
+                  </h2>
+                  <p className="mt-4 text-base leading-relaxed text-[var(--text-secondary)]">
+                    Use this route for questions, introductions, or anything that does not fit the other paths.
+                  </p>
+                  <p className="mt-4 text-base leading-relaxed text-[var(--text-secondary)]">
+                    If you are not sure where to start, send a message and I will point you in the right direction.
+                  </p>
+
+                  <CTARow className="mt-4">
+                    <CTAButton href="/contact" variant="primary">
+                      Contact me
+                    </CTAButton>
+                  </CTARow>
+                </div>
               </div>
-              <CTARow>
-                <CTAButton href="/contact" variant="primary">
-                  Contact me
-                </CTAButton>
-              </CTARow>
             </div>
           </section>
         </div>
