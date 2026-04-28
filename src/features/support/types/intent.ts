@@ -1,8 +1,3 @@
-type IntentKey = 'client' | 'community' | 'companionship';
-
-type IntentCategory = 'PROJECT' | 'HELP' | 'CHECKIN';
-type IntentLogType = 'project' | 'community' | 'companionship';
-
 export type IntentConfig = {
   ui: {
     label: string;
@@ -23,10 +18,6 @@ export type IntentConfig = {
   validation: {
     requiresProjectMetadata: boolean;
     requiresCompanionshipMetadata: boolean;
-  };
-  backend: {
-    category: IntentCategory;
-    logType: IntentLogType;
   };
 };
 
@@ -52,10 +43,6 @@ export const INTENT_CONFIG = {
       requiresProjectMetadata: true,
       requiresCompanionshipMetadata: false,
     },
-    backend: {
-      category: 'PROJECT',
-      logType: 'project',
-    },
   },
   community: {
     ui: {
@@ -77,10 +64,6 @@ export const INTENT_CONFIG = {
     validation: {
       requiresProjectMetadata: false,
       requiresCompanionshipMetadata: false,
-    },
-    backend: {
-      category: 'HELP',
-      logType: 'community',
     },
   },
   companionship: {
@@ -104,35 +87,33 @@ export const INTENT_CONFIG = {
       requiresProjectMetadata: false,
       requiresCompanionshipMetadata: true,
     },
-    backend: {
-      category: 'CHECKIN',
-      logType: 'companionship',
-    },
   },
-} as const satisfies Record<IntentKey, IntentConfig>;
+} as const;
 
 export type Intent = keyof typeof INTENT_CONFIG;
 
-export const DEFAULT_INTENT: Intent = 'client';
+const INTENT_BACKEND_MAP = {
+  client: { category: 'PROJECT', logType: 'project' },
+  community: { category: 'HELP', logType: 'community' },
+  companionship: { category: 'CHECKIN', logType: 'companionship' },
+} as const satisfies Record<Intent, { category: string; logType: string }>;
 
-export const INTENTS = Object.keys(INTENT_CONFIG) as Intent[];
+export type IntentCategory = (typeof INTENT_BACKEND_MAP)[Intent]['category'];
+export type IntentLogType = (typeof INTENT_BACKEND_MAP)[Intent]['logType'];
+
+export const DEFAULT_INTENT: Intent = 'client';
 
 export function isIntent(value: unknown): value is Intent {
   return typeof value === 'string' && Object.hasOwn(INTENT_CONFIG, value);
 }
 
+export const INTENTS = Object.keys(INTENT_CONFIG).filter((k): k is Intent => isIntent(k));
+
 export function getIntentConfig<TIntent extends Intent>(
   intent: TIntent
-): (typeof INTENT_CONFIG)[TIntent] {
-  return INTENT_CONFIG[intent];
-}
-
-export function getIntentMeta(intent: Intent) {
-  const config = getIntentConfig(intent);
-
+): (typeof INTENT_CONFIG)[TIntent] & { backend: (typeof INTENT_BACKEND_MAP)[TIntent] } {
   return {
-    label: config.ui.label,
-    href: config.navigation.href,
-    category: config.backend.category,
-  };
+    ...INTENT_CONFIG[intent],
+    backend: INTENT_BACKEND_MAP[intent],
+  } as (typeof INTENT_CONFIG)[TIntent] & { backend: (typeof INTENT_BACKEND_MAP)[TIntent] };
 }
