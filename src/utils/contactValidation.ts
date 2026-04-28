@@ -60,8 +60,11 @@ export function validateContact(method: ContactMethod, email: string, phone: str
       return errors;
     }
 
-    if (email.trim() && !isValidEmail(email)) errors.email = 'Please enter a valid email address.';
-    if (phone.trim() && !isValidPhone(phone)) errors.phone = 'Please enter a valid phone number.';
+    const emailErr = email.trim() ? validateRequiredEmail(email) : null;
+    if (emailErr) errors.email = emailErr;
+
+    const phoneErr = phone.trim() ? validateRequiredPhone(phone) : null;
+    if (phoneErr) errors.phone = phoneErr;
   }
 
   return errors;
