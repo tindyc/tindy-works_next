@@ -1,3 +1,8 @@
+type IntentKey = 'client' | 'community' | 'companionship';
+
+type IntentCategory = 'PROJECT' | 'HELP' | 'CHECKIN';
+type IntentLogType = 'project' | 'community' | 'companionship';
+
 export type IntentConfig = {
   ui: {
     label: string;
@@ -20,14 +25,10 @@ export type IntentConfig = {
     requiresCompanionshipMetadata: boolean;
   };
   backend: {
-    category: string;
-    logType: string;
+    category: IntentCategory;
+    logType: IntentLogType;
   };
 };
-
-export const INTENTS = ['client', 'community', 'companionship'] as const;
-
-export type Intent = (typeof INTENTS)[number];
 
 export const INTENT_CONFIG = {
   client: {
@@ -108,19 +109,21 @@ export const INTENT_CONFIG = {
       logType: 'companionship',
     },
   },
-} satisfies Record<Intent, IntentConfig>;
+} as const satisfies Record<IntentKey, IntentConfig>;
 
-export const CLIENT_INTENT: Intent = 'client';
-export const COMMUNITY_INTENT: Intent = 'community';
-export const COMPANIONSHIP_INTENT: Intent = 'companionship';
+export type Intent = keyof typeof INTENT_CONFIG;
 
-export const DEFAULT_INTENT: Intent = CLIENT_INTENT;
+export const DEFAULT_INTENT: Intent = 'client';
+
+export const INTENTS = Object.keys(INTENT_CONFIG) as Intent[];
 
 export function isIntent(value: unknown): value is Intent {
   return typeof value === 'string' && Object.hasOwn(INTENT_CONFIG, value);
 }
 
-export function getIntentConfig(intent: Intent): IntentConfig {
+export function getIntentConfig<TIntent extends Intent>(
+  intent: TIntent
+): (typeof INTENT_CONFIG)[TIntent] {
   return INTENT_CONFIG[intent];
 }
 
