@@ -66,6 +66,7 @@ export function ContactForm() {
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [requestId, setRequestId] = useState('');
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
 
   const directEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() ?? '';
@@ -113,11 +114,12 @@ export function ContactForm() {
           metadata: '{}',
         }),
       });
-      const body = (await response.json()) as { error?: string };
+      const body = (await response.json()) as { error?: string; requestId?: string };
 
       if (!response.ok) throw new Error(body.error ?? 'Unable to send your message right now.');
 
       window.localStorage.setItem(LAST_SUBMISSION_KEY, String(Date.now()));
+      setRequestId(body.requestId ?? '');
       setIsSubmitted(true);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Unable to send your message right now.');
@@ -164,8 +166,16 @@ export function ContactForm() {
                   Message sent
                 </h2>
                 <p className="mt-4 max-w-2xl text-lg leading-relaxed text-[var(--text-secondary)]">
-                  Thanks. I&apos;ll get back to you soon.
+                  Thanks. I&apos;ll get back to you soon. If your email is correct, you&apos;ll receive a confirmation shortly.
                 </p>
+                {requestId && (
+                  <p className="mt-4 text-base text-[var(--text-secondary)]">
+                    Reference:{' '}
+                    <span className="font-mono text-sm font-medium text-[var(--text-primary)]">
+                      {requestId}
+                    </span>
+                  </p>
+                )}
                 <Link href="/reception" className={primaryCtaBlock}>
                   Back to reception
                 </Link>

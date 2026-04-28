@@ -14,7 +14,7 @@ import {
   validateContactPayload,
   validateSupportFormPayload,
 } from '@/lib/api-utils';
-import { sendSubmissionEmail } from '@/lib/email';
+import { handleSubmission } from '@/lib/submission-handler';
 import { formatContactEmail, formatSupportEmail } from '@/lib/email-templates';
 import { getIntentConfig, isIntent, type Intent } from '@/features/support/types/intent';
 
@@ -93,35 +93,46 @@ export async function POST(request: Request) {
     timestamp,
   });
 
-  try {
-    const email = supportIntentConfig
-      ? formatSupportEmail({
-          requestId,
-          payload,
-          contact,
-          content,
-          metadata: meta,
-          intentLabel: supportIntentConfig.ui.label,
-          category: supportIntentConfig.backend.category,
-          timestamp,
-        })
-      : formatContactEmail({
-          requestId,
-          payload,
-          contact,
-          content,
-          timestamp,
-        });
+  const ownerEmail = supportIntentConfig
+    ? formatSupportEmail({
+        requestId,
+        payload,
+        contact,
+        content,
+        metadata: meta,
+        intentLabel: supportIntentConfig.ui.label,
+        category: supportIntentConfig.backend.category,
+        timestamp,
+      })
+    : formatContactEmail({
+        requestId,
+        payload,
+        contact,
+        content,
+        timestamp,
+      });
 
-    const result = await sendSubmissionEmail(email);
-    console.log('EMAIL_RESULT', { requestId, result });
-  } catch (error) {
-    console.error('EMAIL_DELIVERY_FAILED', {
-      requestId,
-      type: supportIntentConfig ? supportIntentConfig.backend.logType : 'contact',
-      error: error instanceof Error ? error.message : error,
-    });
-  }
+  const userEmail = contact.contactMethod === 'email' ? contact.contactValue : contact.email || null;
+
+  console.log('COMPUTED_USER_EMAIL_BEFORE_HANDLE_SUBMISSION', {
+    requestId,
+    type: supportIntentConfig ? supportIntentConfig.backend.logType : 'contact',
+    contactMethod: contact.contactMethod,
+    contactValue: contact.contactValue,
+    contactEmail: contact.email,
+    userEmail,
+    hasUserEmail: Boolean(userEmail?.trim()),
+  });
+
+  await handleSubmission({
+    requestId,
+    type: supportIntentConfig ? supportIntentConfig.backend.logType : 'contact',
+    ownerEmail,
+    userEmail,
+    userName: payload.name,
+    confirmationType: isSupport ? 'support' : 'contact',
+    preview: preview ?? undefined,
+  });
 
   return Response.json({
     ok: true,

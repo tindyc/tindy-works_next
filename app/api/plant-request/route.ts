@@ -1,4 +1,4 @@
-import { sendSubmissionEmail } from '@/lib/email';
+import { handleSubmission } from '@/lib/submission-handler';
 import { formatPlantRequestEmail } from '@/lib/email-templates';
 
 type RequestPayload = Record<string, unknown>;
@@ -183,21 +183,28 @@ export async function POST(request: Request) {
 
   const requestId = `req_${Math.random().toString(36).slice(2, 10)}`;
   const timestamp = new Date().toISOString();
+  const userEmail = payload.senderEmail || null;
 
-  try {
-    const result = await sendSubmissionEmail(formatPlantRequestEmail({
+  console.log('COMPUTED_USER_EMAIL_BEFORE_HANDLE_SUBMISSION', {
+    requestId,
+    type: 'plant-request',
+    senderEmail: payload.senderEmail,
+    userEmail,
+    hasUserEmail: Boolean(userEmail?.trim()),
+  });
+
+  await handleSubmission({
+    requestId,
+    type: 'plant-request',
+    ownerEmail: formatPlantRequestEmail({
       requestId,
       payload,
       timestamp,
-    }));
-    console.log('EMAIL_RESULT', { requestId, result });
-  } catch (error) {
-    console.error('EMAIL_DELIVERY_FAILED', {
-      requestId,
-      type: 'plant-request',
-      error: error instanceof Error ? error.message : error,
-    });
-  }
+    }),
+    userEmail,
+    userName: payload.senderName,
+    confirmationType: 'plant',
+  });
 
   return Response.json(
     {

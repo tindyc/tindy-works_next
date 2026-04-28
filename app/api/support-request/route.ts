@@ -11,7 +11,7 @@ import {
   sanitizePayload,
   validateSupportPayload,
 } from '@/lib/api-utils';
-import { sendSubmissionEmail } from '@/lib/email';
+import { handleSubmission } from '@/lib/submission-handler';
 import { formatSupportEmail } from '@/lib/email-templates';
 
 export async function POST(request: Request) {
@@ -64,22 +64,33 @@ export async function POST(request: Request) {
     timestamp,
   });
 
-  try {
-    const result = await sendSubmissionEmail(formatSupportEmail({
+  const userEmail = contact.contactMethod === 'email' ? contact.contactValue : contact.email || null;
+
+  console.log('COMPUTED_USER_EMAIL_BEFORE_HANDLE_SUBMISSION', {
+    requestId,
+    type: 'support',
+    contactMethod: contact.contactMethod,
+    contactValue: contact.contactValue,
+    contactEmail: contact.email,
+    userEmail,
+    hasUserEmail: Boolean(userEmail?.trim()),
+  });
+
+  await handleSubmission({
+    requestId,
+    type: 'support',
+    ownerEmail: formatSupportEmail({
       requestId,
       payload,
       contact,
       content,
       timestamp,
-    }));
-    console.log('EMAIL_RESULT', { requestId, result });
-  } catch (error) {
-    console.error('EMAIL_DELIVERY_FAILED', {
-      requestId,
-      type: 'support',
-      error: error instanceof Error ? error.message : error,
-    });
-  }
+    }),
+    userEmail,
+    userName: payload.name,
+    confirmationType: 'support',
+    preview: preview ?? undefined,
+  });
 
   return Response.json({
     ok: true,

@@ -199,6 +199,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
   const [submitError, setSubmitError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [requestId, setRequestId] = useState('');
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
 
   const directEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL?.trim() ?? '';
@@ -299,10 +300,11 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
         body: JSON.stringify(body),
       });
 
-      const responseBody = (await response.json()) as { error?: string };
+      const responseBody = (await response.json()) as { error?: string; requestId?: string };
       if (!response.ok) throw new Error(responseBody.error ?? 'Unable to send your message right now.');
 
       window.localStorage.setItem(LAST_SUBMISSION_KEY, String(Date.now()));
+      setRequestId(responseBody.requestId ?? '');
       setIsSubmitted(true);
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : 'Unable to send your message right now.');
@@ -348,11 +350,20 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
             {isSubmitted ? (
               <div>
                 <h2 className="font-display text-3xl font-semibold text-[var(--text-primary)] md:text-4xl">
-                  Message sent
+                  Request sent
                 </h2>
                 <p className="mt-4 max-w-2xl text-lg leading-relaxed text-[var(--text-secondary)]">
                   Thanks. I&apos;ll take a look and get back to you soon.
+                  {email && " If your email is correct, you'll receive a confirmation shortly."}
                 </p>
+                {requestId && (
+                  <p className="mt-4 text-base text-[var(--text-secondary)]">
+                    Reference:{' '}
+                    <span className="font-mono text-sm font-medium text-[var(--text-primary)]">
+                      {requestId}
+                    </span>
+                  </p>
+                )}
                 <Link href="/reception" className={primaryCtaBlock}>
                   Back to reception
                 </Link>

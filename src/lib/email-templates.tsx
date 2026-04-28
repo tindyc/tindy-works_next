@@ -1,6 +1,7 @@
 import { ContactEmail } from '@/emails/ContactEmail';
 import { SupportEmail } from '@/emails/SupportEmail';
 import { PlantRequestEmail } from '@/emails/PlantRequestEmail';
+import { UserConfirmationEmail } from '@/emails/UserConfirmationEmail';
 import type { SubmissionEmail } from './email';
 
 type TemplatePayload = Readonly<Record<string, string>>;
@@ -62,5 +63,36 @@ export function formatPlantRequestEmail(input: PlantRequestEmailInput): Submissi
     subject: `[Tindy Works] Plant request ${input.requestId}`,
     react: <PlantRequestEmail {...input} />,
     replyTo: input.payload.senderEmail || undefined,
+  };
+}
+
+export type UserConfirmationEmailInput = {
+  requestId: string;
+  email: string;
+  name?: string;
+  type: 'contact' | 'support' | 'plant';
+  preview?: string;
+};
+
+const confirmationTypeLabel: Record<UserConfirmationEmailInput['type'], string> = {
+  contact: 'contact request',
+  support: 'support request',
+  plant: 'plant request',
+};
+
+export function formatUserConfirmationEmail(input: UserConfirmationEmailInput): SubmissionEmail {
+  const typeLabel = confirmationTypeLabel[input.type];
+  return {
+    subject: `Tindy Works — Request received (${input.requestId})`,
+    react: (
+      <UserConfirmationEmail
+        requestId={input.requestId}
+        name={input.name}
+        type={input.type}
+        preview={input.preview}
+      />
+    ),
+    to: [input.email],
+    text: `Hi ${input.name ?? 'there'},\n\nYour ${typeLabel} (${input.requestId}) has been received. We'll get back to you shortly.\n\nTindy Works`,
   };
 }
