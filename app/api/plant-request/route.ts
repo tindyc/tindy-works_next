@@ -182,11 +182,13 @@ export async function POST(request: Request) {
   }
 
   const requestId = `req_${Math.random().toString(36).slice(2, 10)}`;
+  const timestamp = new Date().toISOString();
 
   try {
     const result = await sendSubmissionEmail(formatPlantRequestEmail({
       requestId,
       payload,
+      timestamp,
     }));
     console.log('EMAIL_RESULT', { requestId, result });
   } catch (error) {

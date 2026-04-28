@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import type { ReactElement } from 'react';
 
 let resend: Resend | null = null;
 
@@ -19,8 +20,7 @@ function getResendClient() {
 
 export type SubmissionEmail = {
   subject: string;
-  html: string;
-  text: string;
+  react: ReactElement;
   replyTo?: string;
 };
 

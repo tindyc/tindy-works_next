@@ -78,6 +78,7 @@ export async function POST(request: Request) {
 
   const requestId = createRequestId();
   const preview = createPreview(content);
+  const timestamp = new Date().toISOString();
 
   console.log('NEW_SUBMISSION', {
     requestId,
@@ -89,7 +90,7 @@ export async function POST(request: Request) {
     contact: contact.contactValue,
     ipType: clientIp === 'unknown' ? 'unknown' : 'real',
     preview,
-    timestamp: new Date().toISOString(),
+    timestamp,
   });
 
   try {
@@ -102,12 +103,14 @@ export async function POST(request: Request) {
           metadata: meta,
           intentLabel: supportIntentConfig.ui.label,
           category: supportIntentConfig.backend.category,
+          timestamp,
         })
       : formatContactEmail({
           requestId,
           payload,
           contact,
           content,
+          timestamp,
         });
 
     const result = await sendSubmissionEmail(email);
