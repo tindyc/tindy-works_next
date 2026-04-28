@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { SupportNav } from '@/components/layout/SupportNav';
+import { INTENTS, getSupportHref } from '@/features/support/types/intent';
 import { primaryCta } from '@/styles/ui';
+
+const [, COMMUNITY_INTENT] = INTENTS;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -133,7 +136,7 @@ export function HelpWithTech() {
                 .
               </p>
               <Link
-                href="/support?intent=community"
+                href={getSupportHref(COMMUNITY_INTENT)}
                 className={primaryCta}
               >
                 Request support

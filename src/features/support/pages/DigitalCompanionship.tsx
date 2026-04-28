@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import { SupportNav } from '@/components/layout/SupportNav';
+import { INTENTS, getSupportHref } from '@/features/support/types/intent';
 import { primaryCta } from '@/styles/ui';
+
+const [, , COMPANIONSHIP_INTENT] = INTENTS;
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -162,7 +165,7 @@ export function DigitalCompanionship() {
                 .
               </p>
               <Link
-                href="/support?intent=companionship"
+                href={getSupportHref(COMPANIONSHIP_INTENT)}
                 className={primaryCta}
               >
                 Request check-ins

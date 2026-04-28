@@ -1,5 +1,8 @@
 import { createHash, randomUUID } from 'crypto';
 import { isIP } from 'node:net';
+import { INTENTS, isIntent } from '@/features/support/types/intent';
+
+const [CLIENT_INTENT, , COMPANIONSHIP_INTENT] = INTENTS;
 
 type RateLimitRecord = {
   lastTimestamp: number;
@@ -17,15 +20,12 @@ type ContactDetails = {
   contactMethod: string;
   normalizedContactValue: string;
 };
-type SupportIntent = 'client' | 'community' | 'companionship';
-
 const RATE_LIMIT_WINDOW_MS = 30_000;
 const RATE_LIMIT_TTL_MS = 5 * 60 * 1000;
 const MAX_REQUESTS_PER_WINDOW = 5;
 const CLEANUP_PROBABILITY = 0.05;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const PHONE_REGEX = /^\+?[0-9\s\-()]{7,}$/;
-const SUPPORT_INTENTS = ['client', 'community', 'companionship'] as const;
 
 const rateLimitStore = new Map<string, RateLimitRecord>();
 const ipRequestCounts = new Map<string, IpRequestRecord>();
@@ -139,10 +139,6 @@ export function isValidPhone(value: string) {
   return PHONE_REGEX.test(value.trim());
 }
 
-export function isSupportIntent(intent: string): intent is SupportIntent {
-  return (SUPPORT_INTENTS as readonly string[]).includes(intent);
-}
-
 export function getSupportMetadata(payload: SanitizedPayload): Record<string, string> {
   try {
     const metadata = JSON.parse(payload.metadata ?? '{}') as unknown;
@@ -244,7 +240,7 @@ export function validateSupportFormPayload(
 ): string | null {
   if (payload.company) return 'Spam detected.';
   if (!payload.intent) return 'Request type is required.';
-  if (!isSupportIntent(payload.intent)) return 'Request type is invalid.';
+  if (!isIntent(payload.intent)) return 'Request type is invalid.';
   if (payload.consentRequired !== 'true') return 'Consent is required to submit this form.';
   if (!payload.name) return 'Name is required.';
 
@@ -276,12 +272,12 @@ export function validateSupportFormPayload(
     if (!meta.relationship) return 'Please indicate your relationship to them.';
   }
 
-  if (payload.intent === 'client') {
+  if (payload.intent === CLIENT_INTENT) {
     if (!meta.projectGoal) return 'Project goal is required.';
     if (!meta.issueType) return 'Project area is required.';
   }
 
-  if (payload.intent === 'companionship') {
+  if (payload.intent === COMPANIONSHIP_INTENT) {
     const hasCompanionshipMetadata = Boolean(
       meta.frequency || meta.forWho || meta.personName || meta.notes,
     );

@@ -1,19 +1,12 @@
 import { SupportForm } from '@/features/support/forms/SupportForm';
-
-type Intent = 'client' | 'community' | 'companionship';
-
-const validIntents = new Set(['client', 'community', 'companionship']);
-
-function isIntent(value: unknown): value is Intent {
-  return typeof value === 'string' && validIntents.has(value);
-}
+import { DEFAULT_INTENT, isIntent, type Intent } from '@/features/support/types/intent';
 
 interface SupportProps {
   intent?: string;
 }
 
 export function Support({ intent }: SupportProps) {
-  const resolvedIntent: Intent = isIntent(intent) ? intent : 'client';
+  const resolvedIntent: Intent = isIntent(intent) ? intent : DEFAULT_INTENT;
 
   if (intent && intent !== resolvedIntent && process.env.NODE_ENV === 'development') {
     console.warn('Invalid intent:', intent);

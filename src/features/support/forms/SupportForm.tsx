@@ -4,10 +4,11 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { Copy, ExternalLink, Mail } from 'lucide-react';
 import { SupportNav } from '@/components/layout/SupportNav';
+import { INTENTS, type Intent } from '@/features/support/types/intent';
 import { inputClassName } from '@/styles/forms';
 import { primaryCta, primaryCtaBlock, secondaryCta } from '@/styles/ui';
 
-type Intent = 'client' | 'community' | 'companionship';
+const [CLIENT_INTENT, COMMUNITY_INTENT, COMPANIONSHIP_INTENT] = INTENTS;
 
 type Metadata = {
   forWho?: string;
@@ -45,15 +46,15 @@ const ctaRowClassName =
   'flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:gap-4';
 
 const intentLabels: Record<Intent, string> = {
-  client: 'Project request',
-  community: 'Simple tech help',
-  companionship: 'Regular check-ins',
+  [CLIENT_INTENT]: 'Project request',
+  [COMMUNITY_INTENT]: 'Simple tech help',
+  [COMPANIONSHIP_INTENT]: 'Regular check-ins',
 };
 
 const intentIntro: Record<Intent, string> = {
-  client: 'Share the goal, the issue, or the workflow. If you are not sure, choose the closest options.',
-  community: 'This form is short. You can request help for yourself or someone else.',
-  companionship: 'No video calls. These check-ins are by email, SMS, WhatsApp, or another simple message option.',
+  [CLIENT_INTENT]: 'Share the goal, the issue, or the workflow. If you are not sure, choose the closest options.',
+  [COMMUNITY_INTENT]: 'This form is short. You can request help for yourself or someone else.',
+  [COMPANIONSHIP_INTENT]: 'No video calls. These check-ins are by email, SMS, WhatsApp, or another simple message option.',
 };
 
 function isValidEmail(value: string) {
@@ -110,12 +111,12 @@ function validate(
     if (!meta.relationship) errors.relationship = 'Please indicate your relationship.';
   }
 
-  if (intent === 'client') {
+  if (intent === CLIENT_INTENT) {
     if (!meta.projectGoal) errors.projectGoal = 'Please choose the closest project goal.';
     if (!meta.issueType) errors.issueType = 'Please choose the closest project area.';
   }
 
-  if (intent === 'companionship' && !meta.frequency) {
+  if (intent === COMPANIONSHIP_INTENT && !meta.frequency) {
     errors.frequency = 'Please choose how often check-ins are needed.';
   }
 
@@ -229,7 +230,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
 
   const errors = validate(intent, name, email, phone, message, contactMethod, meta, consentRequired);
   const canSubmit = Object.keys(errors).length === 0 && !isSubmitting;
-  const isCommunity = intent !== 'client';
+  const isCommunity = intent !== CLIENT_INTENT;
   const showEmailField = contactMethod === '' || contactMethod === 'email' || contactMethod === 'not-sure';
   const showPhoneField = contactMethod === 'sms' || contactMethod === 'whatsapp' || contactMethod === 'not-sure';
 
@@ -338,7 +339,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
 
   return (
     <main className="mt-[64px] flex min-h-[calc(100vh-64px)] w-full flex-grow flex-col border-t border-[var(--border-subtle)] bg-[var(--bg-base)] md:mt-[88px] md:min-h-[calc(100vh-88px)]">
-      <SupportNav active={intent === 'client' ? 'client' : 'community'} />
+      <SupportNav active={intent === CLIENT_INTENT ? CLIENT_INTENT : COMMUNITY_INTENT} />
 
       <header className="border-b border-[var(--border-subtle)] px-4 py-10 md:px-8 md:py-14 lg:px-16">
         <div className="mx-auto max-w-6xl">
@@ -346,7 +347,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
             {intentLabels[intent]}
           </p>
           <h1 className="font-display text-4xl font-bold leading-tight text-[var(--text-primary)] md:text-5xl lg:text-6xl">
-            {intent === 'client' ? 'Tell me what you need' : 'Request support'}
+            {intent === CLIENT_INTENT ? 'Tell me what you need' : 'Request support'}
           </h1>
           <p className={`${isCommunity ? 'text-xl md:text-2xl' : 'text-lg md:text-xl'} mt-4 max-w-3xl leading-relaxed text-[var(--text-secondary)]`}>
             {intentIntro[intent]}
@@ -406,7 +407,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                 </div>
 
                 {/* Section 1: Who is this for? (community / companionship only) */}
-                {(intent === 'community' || intent === 'companionship') ? (
+                {(intent === COMMUNITY_INTENT || intent === COMPANIONSHIP_INTENT) ? (
                   <div className="flex flex-col gap-5">
                     <SectionLabel>Who is this for?</SectionLabel>
                     <ButtonGroup
@@ -419,7 +420,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                       onChange={(value) => setMetaField('forWho', value)}
                       large
                     />
-                    {intent === 'community' ? (
+                    {intent === COMMUNITY_INTENT ? (
                       <ButtonGroup
                         label="What kind of help is needed?"
                         options={[
@@ -433,7 +434,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                         large
                       />
                     ) : null}
-                    {intent === 'companionship' ? (
+                    {intent === COMPANIONSHIP_INTENT ? (
                       <>
                         <ButtonGroup
                           label="How often?"
@@ -561,7 +562,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                 <div className="flex flex-col gap-5">
                   <SectionLabel>About the request</SectionLabel>
 
-                  {intent === 'client' ? (
+                  {intent === CLIENT_INTENT ? (
                     <>
                       <ButtonGroup
                         label="What are you trying to do?"

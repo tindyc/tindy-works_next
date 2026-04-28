@@ -10,22 +10,24 @@ import {
   getSupportMetadata,
   getNormalizedContent,
   getClientIp,
-  isSupportIntent,
   sanitizePayload,
   validateContactPayload,
   validateSupportFormPayload,
 } from '@/lib/api-utils';
+import { INTENTS, isIntent, type Intent } from '@/features/support/types/intent';
 
-const categoryMap = {
-  client: 'PROJECT',
-  community: 'HELP',
-  companionship: 'CHECKIN',
+const [CLIENT_INTENT, COMMUNITY_INTENT, COMPANIONSHIP_INTENT] = INTENTS;
+
+const categoryMap: Record<Intent, string> = {
+  [CLIENT_INTENT]: 'PROJECT',
+  [COMMUNITY_INTENT]: 'HELP',
+  [COMPANIONSHIP_INTENT]: 'CHECKIN',
 } as const;
 
-const logTypeMap = {
-  client: 'project',
-  community: 'community',
-  companionship: 'companionship',
+const logTypeMap: Record<Intent, string> = {
+  [CLIENT_INTENT]: 'project',
+  [COMMUNITY_INTENT]: 'community',
+  [COMPANIONSHIP_INTENT]: 'companionship',
 } as const;
 
 export async function POST(request: Request) {
@@ -48,8 +50,8 @@ export async function POST(request: Request) {
 
   const contact = extractContact(payload);
   const content = getNormalizedContent(payload);
-  const isSupport = isSupportIntent(payload.intent);
-  const supportIntent = isSupport ? (payload.intent as keyof typeof categoryMap) : null;
+  const supportIntent: Intent | null = isIntent(payload.intent) ? payload.intent : null;
+  const isSupport = supportIntent !== null;
   const meta = isSupport ? getSupportMetadata(payload) : {};
 
   let validationError: string | null;

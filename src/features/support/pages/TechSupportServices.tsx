@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { SupportNav } from '@/components/layout/SupportNav';
+import { DEFAULT_INTENT, getSupportHref } from '@/features/support/types/intent';
 import { primaryCta } from '@/styles/ui';
 
 const jsonLd = {
@@ -150,7 +151,7 @@ export function TechSupportServices() {
                 .
               </p>
               <Link
-                href="/support?intent=client"
+                href={getSupportHref(DEFAULT_INTENT)}
                 className={primaryCta}
               >
                 Start a project request
