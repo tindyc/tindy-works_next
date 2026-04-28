@@ -98,12 +98,12 @@ function validate(
     if (!meta.relationship) errors.relationship = 'Please indicate your relationship.';
   }
 
-  if (intentConfig.requiresProjectMetadata) {
+  if (intentConfig.validation.requiresProjectMetadata) {
     if (!meta.projectGoal) errors.projectGoal = 'Please choose the closest project goal.';
     if (!meta.issueType) errors.issueType = 'Please choose the closest project area.';
   }
 
-  if (intentConfig.requiresCompanionshipMetadata && !meta.frequency) {
+  if (intentConfig.validation.requiresCompanionshipMetadata && !meta.frequency) {
     errors.frequency = 'Please choose how often check-ins are needed.';
   }
 
@@ -218,7 +218,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
 
   const errors = validate(intent, name, email, phone, message, contactMethod, meta, consentRequired);
   const canSubmit = Object.keys(errors).length === 0 && !isSubmitting;
-  const isCommunity = intentConfig.useCommunitySizing;
+  const isCommunity = intentConfig.behaviour.useCommunitySizing;
   const showEmailField = contactMethod === '' || contactMethod === 'email' || contactMethod === 'not-sure';
   const showPhoneField = contactMethod === 'sms' || contactMethod === 'whatsapp' || contactMethod === 'not-sure';
 
@@ -327,18 +327,18 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
 
   return (
     <main className="mt-[64px] flex min-h-[calc(100vh-64px)] w-full flex-grow flex-col border-t border-[var(--border-subtle)] bg-[var(--bg-base)] md:mt-[88px] md:min-h-[calc(100vh-88px)]">
-      <SupportNav active={intentConfig.supportNavActive} />
+      <SupportNav active={intentConfig.navigation.supportNavActive} />
 
       <header className="border-b border-[var(--border-subtle)] px-4 py-10 md:px-8 md:py-14 lg:px-16">
         <div className="mx-auto max-w-6xl">
           <p className="mb-4 text-base font-semibold text-[var(--text-secondary)]">
-            {intentConfig.label}
+            {intentConfig.ui.label}
           </p>
           <h1 className="font-display text-4xl font-bold leading-tight text-[var(--text-primary)] md:text-5xl lg:text-6xl">
-            {intentConfig.heading}
+            {intentConfig.ui.heading}
           </h1>
           <p className={`${isCommunity ? 'text-xl md:text-2xl' : 'text-lg md:text-xl'} mt-4 max-w-3xl leading-relaxed text-[var(--text-secondary)]`}>
-            {intentConfig.intro}
+            {intentConfig.ui.intro}
           </p>
         </div>
       </header>
@@ -384,7 +384,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                 <div className="border border-[var(--border-subtle)] bg-[var(--bg-base)] p-5">
                   <p className="text-base font-semibold text-[var(--text-primary)]">Request type</p>
                   <p className="mt-2 text-base leading-relaxed text-[var(--text-secondary)]">
-                    {intentConfig.label}
+                    {intentConfig.ui.label}
                   </p>
                   <Link
                     href="/reception"
@@ -395,7 +395,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                 </div>
 
                 {/* Section 1: Who is this for? (community / companionship only) */}
-                {intentConfig.showWhoSection ? (
+                {intentConfig.behaviour.showWhoSection ? (
                   <div className="flex flex-col gap-5">
                     <SectionLabel>Who is this for?</SectionLabel>
                     <ButtonGroup
@@ -408,7 +408,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                       onChange={(value) => setMetaField('forWho', value)}
                       large
                     />
-                    {intentConfig.showHelpType ? (
+                    {intentConfig.behaviour.showHelpType ? (
                       <ButtonGroup
                         label="What kind of help is needed?"
                         options={[
@@ -422,7 +422,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                         large
                       />
                     ) : null}
-                    {intentConfig.showFrequency ? (
+                    {intentConfig.behaviour.showFrequency ? (
                       <>
                         <ButtonGroup
                           label="How often?"
@@ -550,7 +550,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                 <div className="flex flex-col gap-5">
                   <SectionLabel>About the request</SectionLabel>
 
-                  {intentConfig.showProjectDetails ? (
+                  {intentConfig.behaviour.showProjectDetails ? (
                     <>
                       <ButtonGroup
                         label="What are you trying to do?"

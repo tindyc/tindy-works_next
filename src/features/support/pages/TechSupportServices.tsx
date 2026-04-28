@@ -40,7 +40,7 @@ export function TechSupportServices() {
       />
 
       <main className="mt-[64px] flex min-h-[calc(100vh-64px)] w-full flex-grow flex-col border-t border-[var(--border-subtle)] bg-[var(--bg-base)] md:mt-[88px] md:min-h-[calc(100vh-88px)]">
-        <SupportNav active={INTENT_CONFIG.client.supportNavActive} />
+        <SupportNav active={INTENT_CONFIG.client.navigation.supportNavActive} />
 
         <header className="border-b border-[var(--border-subtle)] px-4 py-10 md:px-8 md:py-14 lg:px-16">
           <div className="mx-auto max-w-5xl">
@@ -151,7 +151,7 @@ export function TechSupportServices() {
                 .
               </p>
               <Link
-                href={INTENT_CONFIG.client.href}
+                href={INTENT_CONFIG.client.navigation.href}
                 className={primaryCta}
               >
                 Start a project request

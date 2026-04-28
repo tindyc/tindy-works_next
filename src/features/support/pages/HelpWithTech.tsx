@@ -40,7 +40,7 @@ export function HelpWithTech() {
       />
 
       <main className="mt-[64px] flex min-h-[calc(100vh-64px)] w-full flex-grow flex-col border-t border-[var(--border-subtle)] bg-[var(--bg-base)] md:mt-[88px] md:min-h-[calc(100vh-88px)]">
-        <SupportNav active={INTENT_CONFIG.community.supportNavActive} />
+        <SupportNav active={INTENT_CONFIG.community.navigation.supportNavActive} />
 
         <header className="border-b border-[var(--border-subtle)] px-4 py-10 md:px-8 md:py-14 lg:px-16">
           <div className="mx-auto max-w-5xl">
@@ -134,7 +134,7 @@ export function HelpWithTech() {
                 .
               </p>
               <Link
-                href={INTENT_CONFIG.community.href}
+                href={INTENT_CONFIG.community.navigation.href}
                 className={primaryCta}
               >
                 Request support

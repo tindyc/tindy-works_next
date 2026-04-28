@@ -271,12 +271,12 @@ export function validateSupportFormPayload(
     if (!meta.relationship) return 'Please indicate your relationship to them.';
   }
 
-  if (intentConfig.requiresProjectMetadata) {
+  if (intentConfig.validation.requiresProjectMetadata) {
     if (!meta.projectGoal) return 'Project goal is required.';
     if (!meta.issueType) return 'Project area is required.';
   }
 
-  if (intentConfig.requiresCompanionshipMetadata) {
+  if (intentConfig.validation.requiresCompanionshipMetadata) {
     const hasCompanionshipMetadata = Boolean(
       meta.frequency || meta.forWho || meta.personName || meta.notes,
     );

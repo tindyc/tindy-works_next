@@ -79,9 +79,9 @@ export async function POST(request: Request) {
 
   console.log('NEW_SUBMISSION', {
     requestId,
-    type: supportIntentConfig ? supportIntentConfig.logType : 'contact',
+    type: supportIntentConfig ? supportIntentConfig.backend.logType : 'contact',
     intent: payload.intent,
-    category: supportIntentConfig ? supportIntentConfig.category : 'CONTACT',
+    category: supportIntentConfig ? supportIntentConfig.backend.category : 'CONTACT',
     priority: payload.priority,
     forWho: meta.forWho,
     contact: contact.contactValue,
