@@ -16,8 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TINDY_WORKS",
-  description: "Digital studio portfolio",
+  metadataBase: new URL('https://tindyc.com'),
+  title: "TINDY_WORKS — Digital Studio Portfolio",
+  description: "Interactive portfolio showcasing digital environments, creative development, and project work.",
 };
 
 const themeInitScript = `

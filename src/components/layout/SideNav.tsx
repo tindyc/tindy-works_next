@@ -11,7 +11,7 @@ const navItems = [
 ];
 
 function itemClassName(isActive: boolean) {
-  return `flex flex-col items-center gap-2 group cursor-pointer ${
+  return `flex flex-col items-center gap-2 group cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary ${
     isActive ? '*:text-primary *:text-[var(--text-primary)]' : ''
   }`;
 }
@@ -29,11 +29,21 @@ export function SideNav() {
           </Link>
         ))}
       </div>
-      <div className="flex flex-col items-center gap-6 pb-8">
-        <div className="text-center">
-          <span className="font-headline-lg text-headline-lg text-[var(--text-primary)] block leading-none">N</span>
-          <span className="material-symbols-outlined text-[var(--text-secondary)] mt-2 block">explore</span>
-        </div>
+      <div className="flex flex-col items-center gap-10 pb-8">
+        <Link
+          href="/sitemap"
+          prefetch={false}
+          aria-label="Open sitemap"
+          title="View sitemap"
+          className="group mt-6 flex flex-col items-center cursor-pointer transition-transform hover:scale-105 will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+        >
+          <span className="font-headline-lg text-headline-lg text-[var(--text-primary)] block leading-none transition-colors group-hover:text-primary">
+            N
+          </span>
+          <span className="material-symbols-outlined text-[var(--text-secondary)] mt-2 block transition-colors group-hover:text-primary">
+            explore
+          </span>
+        </Link>
         <div className="w-px h-12 bg-[var(--border-subtle)]"></div>
         <div className="text-center font-label-sm text-label-sm text-[var(--text-secondary)] [writing-mode:vertical-rl] transform rotate-180 tracking-widest">
           SCALE 1:100
