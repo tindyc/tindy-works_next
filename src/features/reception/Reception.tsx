@@ -1,8 +1,15 @@
 import { Mail, Monitor, Users } from 'lucide-react';
+import { CardContent } from '@/components/ui/CardContent';
+import { CardIcon } from '@/components/ui/CardIcon';
 import { CTAButton, CTARow } from '@/components/ui/CTA';
 
-const cardClassName = 'flex h-full flex-col border border-[var(--border-subtle)] p-6 md:p-8';
-const cardBodyClassName = 'flex h-full flex-col gap-6';
+const cardClassName = `
+  flex h-full flex-col
+  border border-[var(--border-subtle)]
+  p-6 md:p-8
+  lg:max-w-[720px]
+`;
+const cardBodyClassName = 'flex h-full flex-col gap-6 lg:gap-8';
 
 export function Reception() {
   return (
@@ -20,118 +27,112 @@ export function Reception() {
         <section
           role="region"
           aria-labelledby="client-heading"
-          className={`${cardClassName} border-2 border-[var(--border-strong)] bg-[var(--ui-surface)]`}
+          className={`${cardClassName} mx-auto border-2 border-[var(--border-strong)] bg-[var(--ui-surface)] lg:max-w-[840px]`}
         >
           <div className={cardBodyClassName}>
-            <div className="flex gap-5">
-              <span
-                className="flex h-14 w-14 shrink-0 items-center justify-center border border-[var(--border-strong)] bg-[var(--bg-base)] text-[var(--text-primary)]"
-                aria-hidden="true"
+            <CardContent
+              icon={
+                <CardIcon size="md">
+                  <Monitor />
+                </CardIcon>
+              }
+            >
+              <p className="mb-3 text-base font-semibold text-[var(--text-primary)]">
+                Client
+              </p>
+              <h2
+                id="client-heading"
+                className="font-display text-3xl font-semibold leading-tight text-[var(--text-primary)] md:text-4xl"
               >
-                <Monitor className="h-7 w-7" />
-              </span>
-              <div className="flex flex-col">
-                <p className="mb-3 text-base font-semibold text-[var(--text-primary)]">
-                  Client
-                </p>
-                <h2
-                  id="client-heading"
-                  className="font-display text-3xl font-semibold leading-tight text-[var(--text-primary)] md:text-4xl"
-                >
-                  Support for websites, systems, and professional projects
-                </h2>
-                <p className="mt-4 max-w-3xl text-lg leading-relaxed text-[var(--text-secondary)]">
-                  Get help with technical planning, build work, automation, bugs, or improving an existing digital product.
-                </p>
+                Support for websites, systems, and professional projects
+              </h2>
+              <p className="mt-4 max-w-3xl text-lg leading-relaxed text-[var(--text-secondary)]">
+                Get help with technical planning, build work, automation, bugs, or improving an existing digital product.
+              </p>
 
-                <CTARow className="mt-4">
-                  <CTAButton href="/tech-support-services" variant="primaryStrong">
-                    Explore client services
-                  </CTAButton>
-                </CTARow>
-              </div>
-            </div>
+              <CTARow className="mt-5">
+                <CTAButton href="/tech-support-services" variant="primaryStrong">
+                  Explore client services
+                </CTAButton>
+              </CTARow>
+            </CardContent>
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr] lg:items-start">
           <section
             role="region"
             aria-labelledby="community-heading"
-            className={`${cardClassName} bg-[var(--ui-surface)]`}
+            className={`${cardClassName} w-full bg-[var(--ui-surface)] lg:justify-self-start`}
           >
             <div className={cardBodyClassName}>
-              <div className="flex gap-5">
-                <span
-                  className="flex h-12 w-12 shrink-0 items-center justify-center border border-[var(--border-strong)] bg-[var(--bg-base)] text-[var(--text-primary)]"
-                  aria-hidden="true"
+              <CardContent
+                icon={
+                  <CardIcon>
+                    <Users />
+                  </CardIcon>
+                }
+              >
+                <p className="mb-3 text-base font-semibold text-[var(--text-primary)]">
+                  Community
+                </p>
+                <h2
+                  id="community-heading"
+                  className="font-display text-3xl font-semibold leading-tight text-[var(--text-primary)] md:text-4xl"
                 >
-                  <Users className="h-6 w-6" />
-                </span>
-                <div className="flex flex-col">
-                  <p className="mb-3 text-base font-semibold text-[var(--text-primary)]">
-                    Community
-                  </p>
-                  <h2
-                    id="community-heading"
-                    className="font-display text-3xl font-semibold leading-tight text-[var(--text-primary)] md:text-4xl"
-                  >
-                    Patient help with everyday technology
-                  </h2>
-                  <p className="mt-4 text-lg leading-relaxed text-[var(--text-secondary)]">
-                    Clear, calm support for phones, tablets, accounts, video calls, online forms, and other day-to-day technology.
-                  </p>
+                  Patient help with everyday technology
+                </h2>
+                <p className="mt-4 text-lg leading-relaxed text-[var(--text-secondary)]">
+                  Clear, calm support for phones, tablets, accounts, video calls, online forms, and other day-to-day technology.
+                </p>
 
-                  <CTARow className="mt-4">
-                    <CTAButton href="/help-with-tech" variant="primary">
-                      Get help with technology
-                    </CTAButton>
-                    <CTAButton href="/digital-companionship-elderly" variant="secondary">
-                      Digital companionship
-                    </CTAButton>
-                  </CTARow>
-                </div>
-              </div>
+                <CTARow className="mt-5">
+                  <CTAButton href="/help-with-tech" variant="primary">
+                    Get help with technology
+                  </CTAButton>
+                  <CTAButton href="/digital-companionship-elderly" variant="secondary">
+                    Digital companionship
+                  </CTAButton>
+                </CTARow>
+              </CardContent>
             </div>
           </section>
 
           <section
             role="region"
             aria-labelledby="contact-heading"
-            className={cardClassName}
+            className={`${cardClassName} w-full lg:justify-self-end`}
           >
             <div className={cardBodyClassName}>
-              <div className="flex gap-5">
-                <span
-                  className="flex h-12 w-12 shrink-0 items-center justify-center border border-[var(--border-subtle)] bg-[var(--ui-surface)] text-[var(--text-primary)]"
-                  aria-hidden="true"
+              <CardContent
+                icon={
+                  <CardIcon>
+                    <Mail />
+                  </CardIcon>
+                }
+              >
+                <p className="mb-3 text-base font-semibold text-[var(--text-primary)]">
+                  Contact
+                </p>
+                <h2
+                  id="contact-heading"
+                  className="font-display text-2xl font-semibold leading-tight text-[var(--text-primary)] md:text-3xl"
                 >
-                  <Mail className="h-6 w-6" />
-                </span>
-                <div className="flex flex-col">
-                  <p className="mb-3 text-base font-semibold text-[var(--text-primary)]">
-                    Contact
-                  </p>
-                  <h2
-                    id="contact-heading"
-                    className="font-display text-2xl font-semibold leading-tight text-[var(--text-primary)] md:text-3xl"
-                  >
-                    General enquiries
-                  </h2>
-                  <p className="mt-4 text-base leading-relaxed text-[var(--text-secondary)]">
-                    Use this route for questions, introductions, or anything that does not fit the other paths.
-                  </p>
-                  <p className="mt-4 text-base leading-relaxed text-[var(--text-secondary)]">
-                    If you are not sure where to start, send a message and I will point you in the right direction.
-                  </p>
+                  General enquiries
+                </h2>
+                <p className="mt-4 text-base leading-relaxed text-[var(--text-secondary)]">
+                  Use this route for questions, introductions, or anything that does not fit the other paths.
+                </p>
+                <p className="mt-4 text-base leading-relaxed text-[var(--text-secondary)]">
+                  If you are not sure where to start, send a message and I will point you in the right direction.
+                </p>
 
-                  <CTARow className="mt-4">
-                    <CTAButton href="/contact" variant="primary">
-                      Contact me
-                    </CTAButton>
-                  </CTARow>
-                </div>
-              </div>
+                <CTARow className="mt-5">
+                  <CTAButton href="/contact" variant="primary">
+                    Contact me
+                  </CTAButton>
+                </CTARow>
+              </CardContent>
             </div>
           </section>
         </div>
