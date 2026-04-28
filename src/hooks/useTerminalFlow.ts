@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { isValidEmail, isValidPhone } from '@/utils/contactValidation';
+import { isValidEmail, isValidPhone, validateRequiredEmail, validateRequiredPhone } from '@/utils/contactValidation';
 
 export type TerminalFormData = Record<string, string>;
 
@@ -17,6 +17,8 @@ export type TerminalValidationRule<TContext = Record<string, unknown>> =
   | 'required'
   | 'email'
   | 'phone'
+  | 'emailRequired'
+  | 'phoneRequired'
   | TerminalCustomValidation<TContext>;
 
 export type TerminalHistoryEntry = {
@@ -53,21 +55,19 @@ export const terminalValidators = {
     !value.trim() || isValidEmail(value) ? null : 'Please enter a valid email address.',
   phone: ({ value }: ValidationContext<unknown>) =>
     !value.trim() || isValidPhone(value) ? null : 'Please enter a valid phone number.',
+  emailRequired: ({ value }: ValidationContext<unknown>) => validateRequiredEmail(value),
+  phoneRequired: ({ value }: ValidationContext<unknown>) => validateRequiredPhone(value),
 };
 
 function resolveValidationRule<TContext>(
   rule: TerminalValidationRule<TContext>,
   args: ValidationContext<TContext>,
 ): string | null {
-  if (rule === 'required') {
-    return terminalValidators.required(args);
-  }
-  if (rule === 'email') {
-    return terminalValidators.email(args);
-  }
-  if (rule === 'phone') {
-    return terminalValidators.phone(args);
-  }
+  if (rule === 'required') return terminalValidators.required(args);
+  if (rule === 'email') return terminalValidators.email(args);
+  if (rule === 'phone') return terminalValidators.phone(args);
+  if (rule === 'emailRequired') return terminalValidators.emailRequired(args);
+  if (rule === 'phoneRequired') return terminalValidators.phoneRequired(args);
   return rule(args);
 }
 

@@ -136,14 +136,14 @@ export function PlantRequestTerminal({ plant, onComplete }: PlantRequestTerminal
         id: 'senderEmail',
         field: 'senderEmail',
         question: 'What is your email address?',
-        validation: ['required', 'email'],
+        validation: 'emailRequired',
         normalize: (value) => value.trim().toLowerCase(),
       },
       {
         id: 'senderPhone',
         field: 'senderPhone',
         question: 'What is your phone number?',
-        validation: ['required', 'phone'],
+        validation: 'phoneRequired',
       },
       {
         id: 'recipientName',

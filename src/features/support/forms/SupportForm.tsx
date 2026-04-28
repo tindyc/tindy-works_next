@@ -7,7 +7,7 @@ import { SupportNav } from '@/components/layout/SupportNav';
 import { getIntentConfig, type Intent } from '@/features/support/types/intent';
 import { inputClassName } from '@/styles/forms';
 import { primaryCta, primaryCtaBlock, secondaryCta } from '@/styles/ui';
-import { type ContactMethod, validateContact, isValidEmail } from '@/utils/contactValidation';
+import { type ContactMethod, type PersonContactMethod, validateContact, validatePersonContact } from '@/utils/contactValidation';
 import { useContactFields } from '@/hooks/useContactFields';
 
 type Metadata = {
@@ -20,7 +20,7 @@ type Metadata = {
   priority?: string;
   personName?: string;
   relationship?: string;
-  personContactMethod?: string;
+  personContactMethod?: PersonContactMethod;
   personPhone?: string;
   personEmail?: string;
   notes?: string;
@@ -37,6 +37,7 @@ type Errors = {
   frequency?: string;
   personName?: string;
   relationship?: string;
+  personPhone?: string;
   personEmail?: string;
   consentRequired?: string;
 };
@@ -74,10 +75,10 @@ function validate(
   if (meta.forWho === 'someone-else') {
     if (!meta.personName?.trim()) errors.personName = 'Please enter their name.';
     if (!meta.relationship) errors.relationship = 'Please indicate your relationship.';
-    if (meta.personContactMethod === 'email') {
-      if (!meta.personEmail?.trim()) errors.personEmail = 'Please enter their email address.';
-      else if (!isValidEmail(meta.personEmail)) errors.personEmail = 'Please enter a valid email address.';
-    }
+    Object.assign(
+      errors,
+      validatePersonContact(meta.personContactMethod ?? '', meta.personEmail, meta.personPhone),
+    );
   }
 
   if (intentConfig.validation.requiresProjectMetadata) {
@@ -193,7 +194,6 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
   const [company, setCompany] = useState('');
   const [meta, setMeta] = useState<Metadata>({});
   const [consentRequired, setConsentRequired] = useState(false);
-  const [consentOptional, setConsentOptional] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -218,11 +218,12 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
   }
 
   function handlePersonContactMethodChange(value: string) {
+    const method = value as PersonContactMethod;
     setMeta((current) => ({
       ...current,
-      personContactMethod: value,
-      personPhone: value === 'phone' ? current.personPhone : '',
-      personEmail: value === 'email' ? current.personEmail : '',
+      personContactMethod: method,
+      personPhone: method === 'phone' ? current.personPhone : '',
+      personEmail: method === 'email' ? current.personEmail : '',
     }));
   }
 
@@ -291,7 +292,6 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
       if (email.trim()) body.email = email.trim();
       if (phone.trim()) body.phone = phone.trim();
       if (meta.priority) body.priority = meta.priority;
-      if (consentOptional) body.consentOptional = true;
 
       const response = await fetch('/api/contact', {
         method: 'POST',
@@ -679,6 +679,7 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                           className="mb-2 block text-base font-semibold text-[var(--text-primary)]"
                         >
                           Their phone number
+                          <span className="ml-1 text-[var(--status-danger)]" aria-hidden="true">*</span>
                         </label>
                         <input
                           id="support-personPhone"
@@ -686,7 +687,14 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                           inputMode="tel"
                           value={meta.personPhone ?? ''}
                           onChange={(event) => setMetaField('personPhone', event.target.value)}
-                          className={inputClassName(false)}
+                          onBlur={() => touch('personPhone')}
+                          aria-describedby={showError('personPhone') && errors.personPhone ? 'support-personPhone-error' : undefined}
+                          aria-invalid={errors.personPhone ? true : undefined}
+                          className={inputClassName(showError('personPhone') && Boolean(errors.personPhone))}
+                        />
+                        <FieldError
+                          id="support-personPhone-error"
+                          message={showError('personPhone') ? errors.personPhone : ''}
                         />
                       </div>
                     ) : null}
@@ -766,22 +774,6 @@ export function SupportForm({ initialIntent }: SupportFormProps) {
                     message={showError('consentRequired') ? errors.consentRequired : ''}
                     assertive
                   />
-
-                  <div className="flex items-start gap-4">
-                    <input
-                      id="support-consentOptional"
-                      type="checkbox"
-                      checked={consentOptional}
-                      onChange={(event) => setConsentOptional(event.target.checked)}
-                      className="mt-[3px] h-5 w-5 shrink-0 cursor-pointer accent-[var(--text-primary)]"
-                    />
-                    <label
-                      htmlFor="support-consentOptional"
-                      className="cursor-pointer text-base text-[var(--text-secondary)]"
-                    >
-                      I&apos;m happy to be contacted about related updates or services.
-                    </label>
-                  </div>
                 </div>
 
                 {/* Submit */}
