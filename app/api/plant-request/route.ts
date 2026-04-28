@@ -1,3 +1,6 @@
+import { sendSubmissionEmail } from '@/lib/email';
+import { formatPlantRequestEmail } from '@/lib/email-templates';
+
 type RequestPayload = Record<string, unknown>;
 
 type RateLimitRecord = {
@@ -180,11 +183,24 @@ export async function POST(request: Request) {
 
   const requestId = `req_${Math.random().toString(36).slice(2, 10)}`;
 
+  try {
+    const result = await sendSubmissionEmail(formatPlantRequestEmail({
+      requestId,
+      payload,
+    }));
+    console.log('EMAIL_RESULT', { requestId, result });
+  } catch (error) {
+    console.error('EMAIL_DELIVERY_FAILED', {
+      requestId,
+      type: 'plant-request',
+      error: error instanceof Error ? error.message : error,
+    });
+  }
+
   return Response.json(
     {
       ok: true,
       requestId,
-      message: 'Plant request received.',
     },
     { status: 200 },
   );

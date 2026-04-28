@@ -11,6 +11,8 @@ import {
   sanitizePayload,
   validateSupportPayload,
 } from '@/lib/api-utils';
+import { sendSubmissionEmail } from '@/lib/email';
+import { formatSupportEmail } from '@/lib/email-templates';
 
 export async function POST(request: Request) {
   let rawPayload: unknown = null;
@@ -60,6 +62,22 @@ export async function POST(request: Request) {
     preview,
     timestamp: new Date().toISOString(),
   });
+
+  try {
+    const result = await sendSubmissionEmail(formatSupportEmail({
+      requestId,
+      payload,
+      contact,
+      content,
+    }));
+    console.log('EMAIL_RESULT', { requestId, result });
+  } catch (error) {
+    console.error('EMAIL_DELIVERY_FAILED', {
+      requestId,
+      type: 'support',
+      error: error instanceof Error ? error.message : error,
+    });
+  }
 
   return Response.json({
     ok: true,
