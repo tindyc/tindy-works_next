@@ -1,10 +1,6 @@
 import { sendSubmissionEmail, type SubmissionEmail } from './email';
 import { formatUserConfirmationEmail } from './email-templates';
 
-function getUserEmailOverride() {
-  return process.env.USER_CONFIRMATION_EMAIL_OVERRIDE?.trim() || process.env.EMAIL_TO?.trim() || null;
-}
-
 export async function handleSubmission({
   requestId,
   type,
@@ -67,11 +63,9 @@ export async function handleSubmission({
   }
 
   if (normalizedUserEmail) {
-    const overrideUserEmail = getUserEmailOverride();
-    const finalUserEmail = overrideUserEmail ?? normalizedUserEmail;
     const confirmationEmail = formatUserConfirmationEmail({
       requestId,
-      email: finalUserEmail,
+      email: normalizedUserEmail,
       name: userName,
       type: confirmationType,
       preview,
@@ -79,10 +73,8 @@ export async function handleSubmission({
 
     console.log('USER_CONFIRMATION_EMAIL_TARGET', {
       requestId,
-      originalUserEmail: normalizedUserEmail,
-      overrideUserEmail,
-      finalUserEmail,
-      forcedOverrideActive: Boolean(overrideUserEmail),
+      userEmail: normalizedUserEmail,
+      to: confirmationEmail.to,
     });
 
     try {
