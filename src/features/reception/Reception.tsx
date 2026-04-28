@@ -1,10 +1,8 @@
-import Link from 'next/link';
 import { Mail, Monitor, Users } from 'lucide-react';
-import { primaryCtaInline, primaryCtaInlineStrong, secondaryCta } from '@/styles/ui';
+import { CTAButton, CTARow } from '@/components/ui/CTA';
 
 const cardClassName = 'flex h-full flex-col border border-[var(--border-subtle)] p-6 md:p-8';
 const cardBodyClassName = 'flex h-full flex-col justify-between gap-6';
-const ctaRowClassName = 'flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center md:gap-4';
 
 export function Reception() {
   return (
@@ -24,7 +22,7 @@ export function Reception() {
           aria-labelledby="client-heading"
           className={`${cardClassName} border-2 border-[var(--border-strong)] bg-[var(--ui-surface)]`}
         >
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
+          <div className="flex flex-col gap-6">
             <div className="grid gap-5 sm:grid-cols-[3.5rem_1fr]">
               <span
                 className="flex h-14 w-14 items-center justify-center border border-[var(--border-strong)] bg-[var(--bg-base)] text-[var(--text-primary)]"
@@ -48,14 +46,11 @@ export function Reception() {
               </div>
             </div>
 
-            <div className={ctaRowClassName}>
-              <Link
-                href="/tech-support-services"
-                className={primaryCtaInlineStrong}
-              >
+            <CTARow>
+              <CTAButton href="/tech-support-services" variant="primaryStrong">
                 Explore client services
-              </Link>
-            </div>
+              </CTAButton>
+            </CTARow>
           </div>
         </section>
 
@@ -87,21 +82,17 @@ export function Reception() {
                     Clear, calm support for phones, tablets, accounts, video calls, online forms, and other day-to-day technology.
                   </p>
                 </div>
-              </div>
 
-              <div className={ctaRowClassName}>
-                <Link
-                  href="/help-with-tech"
-                  className={primaryCtaInline}
-                >
-                  Get help with technology
-                </Link>
-                <Link
-                  href="/digital-companionship-elderly"
-                  className={secondaryCta}
-                >
-                  Digital companionship
-                </Link>
+                <div className="sm:col-start-2">
+                  <CTARow className="mt-6">
+                    <CTAButton href="/help-with-tech" variant="primary">
+                      Get help with technology
+                    </CTAButton>
+                    <CTAButton href="/digital-companionship-elderly" variant="secondary">
+                      Digital companionship
+                    </CTAButton>
+                  </CTARow>
+                </div>
               </div>
             </div>
           </section>
@@ -135,14 +126,11 @@ export function Reception() {
                   If you are not sure where to start, send a message and I will point you in the right direction.
                 </p>
               </div>
-              <div className={ctaRowClassName}>
-                <Link
-                  href="/contact"
-                  className={primaryCtaInline}
-                >
+              <CTARow>
+                <CTAButton href="/contact" variant="primary">
                   Contact me
-                </Link>
-              </div>
+                </CTAButton>
+              </CTARow>
             </div>
           </section>
         </div>

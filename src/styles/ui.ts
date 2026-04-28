@@ -3,7 +3,7 @@ export const primaryCta =
 
 export const primaryCtaBlock = `${primaryCta} mt-8`;
 
-export const primaryCtaInline = `${primaryCta} w-auto`;
+export const primaryCtaInline = primaryCta;
 
 export const primaryCtaInlineStrong = `${primaryCtaInline} ui-button-strong`;
 
@@ -13,3 +13,11 @@ export const primaryCtaMono = `${primaryCta} font-mono text-xs uppercase trackin
 
 export const secondaryCta =
   'inline-flex min-h-[56px] w-full items-center justify-center gap-2 border border-[var(--border-subtle)] px-6 py-4 text-base font-semibold text-[var(--text-primary)] transition-colors hover:bg-[var(--hover-bg)] sm:w-auto focus:outline focus:outline-2 focus:outline-offset-4 focus:outline-[var(--text-primary)]';
+
+export const secondaryCtaInline = `
+${primaryCta}
+border border-[var(--border-subtle)]
+bg-transparent
+text-[var(--text-primary)]
+hover:bg-[var(--hover-bg)]
+`;
