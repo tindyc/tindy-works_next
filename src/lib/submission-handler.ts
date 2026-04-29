@@ -90,6 +90,19 @@ export async function handleSubmission({
       subject: ownerEmail.subject,
     });
     const result = await sendSubmissionEmail(ownerEmail);
+    if (result?.error) {
+      console.error('EMAIL_PROVIDER_ERROR', {
+        requestId,
+        type,
+        error: result.error,
+      });
+      throw new Error(
+        typeof result.error === 'string'
+          ? result.error
+          : JSON.stringify(result.error)
+      );
+    }
+
     const { error: updateError } = await supabase
       .from('submissions')
       .update({ status: 'sent' })
@@ -157,6 +170,19 @@ export async function handleSubmission({
         subject: confirmationEmail.subject,
       });
       const result = await sendSubmissionEmail(confirmationEmail);
+      if (result?.error) {
+        console.error('EMAIL_PROVIDER_ERROR', {
+          requestId,
+          type,
+          error: result.error,
+        });
+        throw new Error(
+          typeof result.error === 'string'
+            ? result.error
+            : JSON.stringify(result.error)
+        );
+      }
+
       console.log('AFTER_SEND_SUBMISSION_EMAIL', {
         requestId,
         type,
@@ -180,6 +206,14 @@ export async function handleSubmission({
         to: confirmationEmail.to,
         error: error instanceof Error ? error.message : error,
       });
+      const { error: updateError } = await supabase
+        .from('submissions')
+        .update({ status: 'failed' })
+        .eq('id', record.id);
+
+      if (updateError) {
+        console.error('DB STATUS UPDATE FAILED', updateError);
+      }
     }
   } else {
     console.warn('USER_CONFIRMATION_EMAIL_SKIPPED', {
