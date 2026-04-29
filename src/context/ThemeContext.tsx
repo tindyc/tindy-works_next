@@ -33,7 +33,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // Keep the pre-hydration theme source of truth in sync.
   useEffect(() => {
     localStorage.setItem('theme', theme);
-    document.documentElement.dataset.theme = theme;
+    document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
   // Handle brightness as a pure visual filter layer

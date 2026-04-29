@@ -66,10 +66,10 @@ export function FloorPlanCanvas() {
               <div className="bg-[var(--bg-base)] border border-[var(--border-subtle)] p-3 sm:p-6 backdrop-blur-md w-full max-w-sm translate-y-4 md:group-hover:translate-y-0 transition-transform duration-500 shadow-[0_10px_30px_var(--shadow-base)] hidden md:block">
                 <div className="flex items-center gap-3 mb-2 md:mb-3 border-b border-[var(--border-subtle)] pb-2 md:pb-3">
                   <span className="material-symbols-outlined text-[var(--text-primary)] text-xs md:text-sm">nature_people</span>
-                  <h4 className="font-label-sm text-[var(--text-primary)] tracking-widest text-[8px] md:text-[10px] uppercase">Grow, Reflect & Share</h4>
+                  <h4 className="font-label-sm text-[var(--text-primary)] tracking-widest text-[8px] md:text-[10px] uppercase">Grow & Reflect</h4>
                 </div>
                 <p className="font-body-sm text-[var(--text-secondary)] text-[9px] md:text-[11px] leading-relaxed hidden md:block">
-                  A slower, more personal space.<br/>The Garden is home to a digital plant you can interact with — something simple that grows over time and stays with you. It’s stored locally, so it’s yours to look after.<br/><br/>Alongside that, this space connects to something real: I grow plants as a hobby — greens, catmint (for my cats), snake plants, and more.<br/><br/>If you’d like, you can:<br/>- Request a plant or cutting<br/>- Ask for something to grow<br/>- I’ll send it out where I can<br/><br/>It’s about growth, both digital and real.
+                  A slower, more personal space.<br/>The Garden is home to a digital plant you can interact with — something simple that grows over time and stays with you. It’s stored locally, so it’s yours to look after.<br/><br/>You can water it, watch the weather shape its mood, and return over time to see what has changed.<br/><br/>It’s a quiet system for growth, attention, and small daily rituals.
                 </p>
               </div>
             </div>

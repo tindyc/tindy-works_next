@@ -40,6 +40,8 @@ type UseTerminalFlowOptions<TContext> = {
   flow: Array<TerminalFlowStep<TContext>>;
   context?: TContext;
   onComplete: (data: TerminalFormData) => void | Promise<void>;
+  onExit?: () => void;
+  bootMessages?: string[];
   introMessages?: string[];
   confirmationQuestion?: string;
   confirmYesValues?: string[];
@@ -113,10 +115,14 @@ function getNextStep<TContext>(
   return eligibleFlow.find((step) => data[step.field] === undefined);
 }
 
+const EXIT_COMMANDS = ['q', 'quit', 'exit'];
+
 export function useTerminalFlow<TContext = Record<string, unknown>>({
   flow,
   context,
   onComplete,
+  onExit,
+  bootMessages = [],
   introMessages = [],
   confirmationQuestion = 'Confirm submission? (yes/no)',
   confirmYesValues = ['yes', 'y'],
@@ -130,12 +136,18 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
   const [data, setData] = useState<TerminalFormData>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
+  const [isBooting, setIsBooting] = useState(true);
+  const [isSystemRendering, setIsSystemRendering] = useState(false);
   const prevResetKeyRef = useRef<string | number | undefined>(resetKey);
   const resetTimeoutRef = useRef<number | null>(null);
+  const messageTimeoutsRef = useRef<number[]>([]);
+  const sequenceRef = useRef(0);
   const pendingResetRef = useRef(false);
   const mountedRef = useRef(false);
   const flowRef = useRef(flow);
   const contextRef = useRef(context);
+  const bootMessagesRef = useRef(bootMessages);
   const introMessagesRef = useRef(introMessages);
   const inputValueRef = useRef(input);
   const isSubmittingRef = useRef(isSubmitting);
@@ -156,6 +168,10 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
   useEffect(() => {
     contextRef.current = context;
   }, [context]);
+
+  useEffect(() => {
+    bootMessagesRef.current = bootMessages;
+  }, [bootMessages]);
 
   useEffect(() => {
     introMessagesRef.current = introMessages;
@@ -179,24 +195,93 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
     [createEntry],
   );
 
+  const clearMessageTimeouts = useCallback(() => {
+    for (const timeout of messageTimeoutsRef.current) {
+      window.clearTimeout(timeout);
+    }
+    messageTimeoutsRef.current = [];
+  }, []);
+
+  const waitForMessageDelay = useCallback((delay: number) => {
+    return new Promise<void>((resolve) => {
+      const timeout = window.setTimeout(() => {
+        messageTimeoutsRef.current = messageTimeoutsRef.current.filter((item) => item !== timeout);
+        resolve();
+      }, delay);
+
+      messageTimeoutsRef.current.push(timeout);
+    });
+  }, []);
+
+  const appendEntriesWithTiming = useCallback(
+    async (
+      entries: Array<{ text: string; type: TerminalHistoryEntry['type'] }>,
+      options: { initialDelay?: number; lineDelay?: number } = {},
+    ) => {
+      if (entries.length === 0) {
+        return;
+      }
+
+      const sequenceId = sequenceRef.current;
+      setIsSystemRendering(true);
+
+      try {
+        if (options.initialDelay) {
+          await waitForMessageDelay(options.initialDelay);
+        }
+
+        for (const [index, entry] of entries.entries()) {
+          if (!mountedRef.current || sequenceId !== sequenceRef.current) {
+            return;
+          }
+
+          appendEntries([entry]);
+
+          if (index < entries.length - 1) {
+            await waitForMessageDelay(options.lineDelay ?? 140);
+          }
+        }
+      } finally {
+        if (mountedRef.current && sequenceId === sequenceRef.current) {
+          setIsSystemRendering(false);
+        }
+      }
+    },
+    [appendEntries, waitForMessageDelay],
+  );
+
   const resetConversation = useCallback(() => {
+    sequenceRef.current += 1;
+    clearMessageTimeouts();
     setData({});
     setInputState('');
     setIsSubmitting(false);
     setIsSubmitted(false);
+    setIsExiting(false);
+    setIsBooting(true);
+    setIsSystemRendering(true);
     pendingResetRef.current = false;
+    const bootEntries = bootMessagesRef.current.map((message) => createEntry(message, 'system'));
+    setHistory(bootEntries);
 
     const initialData: TerminalFormData = {};
     const firstStep = getNextStep(flowRef.current, initialData, contextRef.current);
-    const nextHistory: TerminalHistoryEntry[] = [
-      ...introMessagesRef.current.map((message) => createEntry(message, 'system')),
+    const nextEntries = [
+      ...introMessagesRef.current.map((message) => ({ text: message, type: 'system' as const })),
       ...(firstStep
-        ? [createEntry(firstStep.question, 'system')]
-        : [createEntry('No terminal flow steps are available.', 'error')]),
+        ? [{ text: firstStep.question, type: 'system' as const }]
+        : [{ text: 'No terminal flow steps are available.', type: 'error' as const }]),
     ];
 
-    setHistory(nextHistory);
-  }, [createEntry]);
+    const sequenceId = sequenceRef.current;
+    void (async () => {
+      await appendEntriesWithTiming(nextEntries, { initialDelay: 100, lineDelay: 140 });
+
+      if (mountedRef.current && sequenceId === sequenceRef.current) {
+        setIsBooting(false);
+      }
+    })();
+  }, [appendEntriesWithTiming, clearMessageTimeouts, createEntry]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -204,12 +289,14 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
 
     return () => {
       mountedRef.current = false;
+      sequenceRef.current += 1;
       window.clearTimeout(timeout);
+      clearMessageTimeouts();
       if (resetTimeoutRef.current !== null) {
         window.clearTimeout(resetTimeoutRef.current);
       }
     };
-  }, [resetConversation]);
+  }, [clearMessageTimeouts, resetConversation]);
 
   useEffect(() => {
     const previousResetKey = prevResetKeyRef.current;
@@ -266,56 +353,79 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
 
   const submitInput = useCallback(
     async (rawInput: string) => {
-      if (isSubmitting) {
+      if (isSubmitting || isSystemRendering || isExiting) {
         return;
       }
 
       const typedValue = rawInput.trim();
+      const normalizedCommand = typedValue.toLowerCase();
+
+      if (EXIT_COMMANDS.includes(normalizedCommand)) {
+        appendEntries([{ text: `> ${typedValue}`, type: 'input' }]);
+        setInputState('');
+        setIsExiting(true);
+
+        await appendEntriesWithTiming([
+          { text: 'Session terminated.', type: 'system' },
+          { text: 'Closing channel...', type: 'system' },
+        ], { initialDelay: 100, lineDelay: 140 });
+
+        await waitForMessageDelay(260);
+        onExit?.();
+        return;
+      }
 
       if (!currentStep && awaitingConfirmation) {
         appendEntries([{ text: `> ${typedValue || '(empty)'}`, type: 'input' }]);
+        setInputState('');
         const normalized = typedValue.toLowerCase();
 
         if (confirmYesValues.includes(normalized)) {
-          appendEntries([{ text: 'Submitting request...', type: 'system' }]);
+          await appendEntriesWithTiming([{ text: 'Submitting request...', type: 'system' }], {
+            initialDelay: 100,
+          });
           setIsSubmitting(true);
           try {
             await onComplete(data);
             setIsSubmitted(true);
-            appendEntries([{ text: 'Submission complete.', type: 'success' }]);
+            await appendEntriesWithTiming([{ text: 'Submission complete.', type: 'success' }], {
+              initialDelay: 120,
+            });
           } catch (error) {
             const message = error instanceof Error ? error.message : 'Unable to submit right now.';
-            appendEntries([{ text: message, type: 'error' }]);
+            await appendEntriesWithTiming([{ text: message, type: 'error' }], {
+              initialDelay: 120,
+            });
           } finally {
             setIsSubmitting(false);
           }
-          setInputState('');
           return;
         }
 
         if (confirmNoValues.includes(normalized)) {
-          appendEntries([
+          await appendEntriesWithTiming([
             { text: 'Submission cancelled. Restarting flow...', type: 'system' },
-          ]);
+          ], { initialDelay: 100 });
           resetConversation();
           return;
         }
 
-        appendEntries([
+        await appendEntriesWithTiming([
           { text: 'Please answer with yes or no.', type: 'error' },
           { text: confirmationQuestion, type: 'system' },
-        ]);
-        setInputState('');
+        ], { initialDelay: 100 });
         return;
       }
 
       if (!currentStep) {
-        appendEntries([{ text: 'No active terminal step.', type: 'error' }]);
-        setInputState('');
+        await appendEntriesWithTiming([{ text: 'No active terminal step.', type: 'error' }], {
+          initialDelay: 100,
+        });
         return;
       }
 
       appendEntries([{ text: `> ${typedValue || '(empty)'}`, type: 'input' }]);
+      setInputState('');
 
       const normalizedValue = currentStep.normalize
         ? currentStep.normalize(typedValue, data, context)
@@ -329,11 +439,10 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
       );
 
       if (validationError) {
-        appendEntries([
+        await appendEntriesWithTiming([
           { text: validationError, type: 'error' },
           { text: currentStep.question, type: 'system' },
-        ]);
-        setInputState('');
+        ], { initialDelay: 100 });
         return;
       }
 
@@ -345,8 +454,9 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
 
       const nextStep = getNextStep(flow, updatedData, context);
       if (nextStep) {
-        appendEntries([{ text: nextStep.question, type: 'system' }]);
-        setInputState('');
+        await appendEntriesWithTiming([{ text: nextStep.question, type: 'system' }], {
+          initialDelay: 120,
+        });
         return;
       }
 
@@ -354,15 +464,15 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
         ? summaryBuilder(updatedData, context)
         : buildDefaultSummary(updatedData);
 
-      appendEntries([
+      await appendEntriesWithTiming([
         { text: 'Review your responses:', type: 'system' },
         ...summaryLines.map((line) => ({ text: line, type: 'system' as const })),
         { text: confirmationQuestion, type: 'system' },
-      ]);
-      setInputState('');
+      ], { initialDelay: 120 });
     },
     [
       appendEntries,
+      appendEntriesWithTiming,
       awaitingConfirmation,
       confirmNoValues,
       confirmYesValues,
@@ -370,9 +480,13 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
       context,
       currentStep,
       data,
+      isExiting,
       isSubmitting,
+      isSystemRendering,
       onComplete,
+      onExit,
       resetConversation,
+      waitForMessageDelay,
       flow,
       summaryBuilder,
     ],
@@ -387,6 +501,9 @@ export function useTerminalFlow<TContext = Record<string, unknown>>({
     awaitingConfirmation,
     isSubmitting,
     isSubmitted,
+    isExiting,
+    isBooting,
+    isSystemRendering,
     data,
   };
 }

@@ -15,7 +15,7 @@ export async function handleSubmission({
   ownerEmail: SubmissionEmail;
   userEmail?: string | null;
   userName?: string;
-  confirmationType: 'contact' | 'support' | 'plant';
+  confirmationType: 'contact' | 'support';
   preview?: string;
 }) {
   const normalizedUserEmail = userEmail?.trim() || null;

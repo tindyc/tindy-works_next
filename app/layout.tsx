@@ -49,7 +49,7 @@ export default function RootLayout({
       <body className="min-h-full">
 
         <ThemeProvider>
-          <div className="bg-[var(--bg-base)] text-[var(--text-primary)] min-h-[100dvh] flex flex-col antialiased selection:bg-[var(--text-primary)] selection:text-[var(--bg-base)]">
+          <div className="bg-[var(--bg-base,#050505)] text-[var(--text-primary,#ffffff)] min-h-[100dvh] flex flex-col antialiased selection:bg-[var(--text-primary,#ffffff)] selection:text-[var(--bg-base,#050505)]">
             <TopNav />
             {children}
           </div>

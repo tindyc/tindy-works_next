@@ -1,6 +1,5 @@
 import { ContactEmail } from '@/emails/ContactEmail';
 import { SupportEmail } from '@/emails/SupportEmail';
-import { PlantRequestEmail } from '@/emails/PlantRequestEmail';
 import { UserConfirmationEmail } from '@/emails/UserConfirmationEmail';
 import type { SubmissionEmail } from './email';
 
@@ -31,12 +30,6 @@ export type SupportEmailInput = {
   timestamp?: string;
 };
 
-export type PlantRequestEmailInput = {
-  requestId: string;
-  payload: TemplatePayload;
-  timestamp?: string;
-};
-
 function contactReplyTo(contact: ContactDetails): string | undefined {
   if (contact.contactMethod === 'email') return contact.contactValue;
   return contact.email || undefined;
@@ -58,26 +51,17 @@ export function formatSupportEmail(input: SupportEmailInput): SubmissionEmail {
   };
 }
 
-export function formatPlantRequestEmail(input: PlantRequestEmailInput): SubmissionEmail {
-  return {
-    subject: `[Tindy Works] Plant request ${input.requestId}`,
-    react: <PlantRequestEmail {...input} />,
-    replyTo: input.payload.senderEmail || undefined,
-  };
-}
-
 export type UserConfirmationEmailInput = {
   requestId: string;
   email: string;
   name?: string;
-  type: 'contact' | 'support' | 'plant';
+  type: 'contact' | 'support';
   preview?: string;
 };
 
 const confirmationTypeLabel: Record<UserConfirmationEmailInput['type'], string> = {
   contact: 'contact request',
   support: 'support request',
-  plant: 'plant request',
 };
 
 export function formatUserConfirmationEmail(input: UserConfirmationEmailInput): SubmissionEmail {

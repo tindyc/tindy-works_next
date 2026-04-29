@@ -3,14 +3,13 @@ import { EmailLayout } from './components/EmailLayout';
 type Props = {
   requestId: string;
   name?: string;
-  type: 'contact' | 'support' | 'plant';
+  type: 'contact' | 'support';
   preview?: string;
 };
 
 const typeLabel: Record<Props['type'], string> = {
   contact: 'contact request',
   support: 'support request',
-  plant: 'plant request',
 };
 
 export function UserConfirmationEmail({ requestId, name, type, preview }: Props) {
