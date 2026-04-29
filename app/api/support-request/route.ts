@@ -90,6 +90,14 @@ export async function POST(request: Request) {
     userName: payload.name,
     confirmationType: 'support',
     preview: preview ?? undefined,
+    payload,
+    content,
+    contact,
+    metadata: undefined,
+    fingerprint,
+    ip: safeIp,
+    intent: payload.intent,
+    category: null,
   });
 
   return Response.json({

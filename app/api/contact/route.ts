@@ -132,6 +132,14 @@ export async function POST(request: Request) {
     userName: payload.name,
     confirmationType: isSupport ? 'support' : 'contact',
     preview: preview ?? undefined,
+    payload,
+    content,
+    contact,
+    metadata: meta,
+    fingerprint,
+    ip: safeIp,
+    intent: payload.intent,
+    category: supportIntentConfig?.backend.category ?? null,
   });
 
   return Response.json({
