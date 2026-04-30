@@ -1,5 +1,6 @@
 import { sendSubmissionEmail } from './email';
 import { formatContactEmail, formatSupportEmail } from './email-templates';
+import type { TicketStatus } from './admin-validation';
 import { getIntentConfig, isIntent } from '@/features/support/types/intent';
 
 export type SubmissionRecord = {
@@ -17,7 +18,7 @@ export type SubmissionRecord = {
   metadata?: Record<string, string> | null;
   payload?: Record<string, string> | null;
   email_status: 'pending' | 'sent' | 'failed';
-  ticket_status: 'open' | 'in-progress' | 'waiting' | 'resolved';
+  ticket_status: TicketStatus;
   internal_notes?: string | null;
   created_at: string;
   last_activity_at?: string | null;

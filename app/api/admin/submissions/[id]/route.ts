@@ -1,5 +1,10 @@
 import { supabase } from '@/lib/supabase';
 import { getAdminUser } from '@/lib/admin-auth';
+import {
+  VALID_TICKET_STATUSES,
+  isNullableString,
+  isTicketStatus,
+} from '@/lib/admin-validation';
 
 export async function GET(
   _request: Request,
@@ -40,14 +45,38 @@ export async function PATCH(
   }
 
   const updates: Record<string, unknown> = {};
-  if (typeof body === 'object' && body !== null) {
-    const b = body as Record<string, unknown>;
-    if ('ticket_status' in b && typeof b.ticket_status === 'string') {
-      updates.ticket_status = b.ticket_status;
+
+  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+    return Response.json({ error: 'Invalid request body' }, { status: 400 });
+  }
+
+  const b = body as Record<string, unknown>;
+
+  // Only allow explicit admin-editable fields here.
+  // Add new fields carefully with validation.
+  if ('ticket_status' in b) {
+    if (!isTicketStatus(b.ticket_status)) {
+      return Response.json(
+        {
+          error: 'Invalid ticket_status',
+          allowed: VALID_TICKET_STATUSES,
+        },
+        { status: 400 }
+      );
     }
-    if ('internal_notes' in b && typeof b.internal_notes === 'string') {
-      updates.internal_notes = b.internal_notes;
+
+    updates.ticket_status = b.ticket_status;
+  }
+
+  if ('internal_notes' in b) {
+    if (!isNullableString(b.internal_notes)) {
+      return Response.json(
+        { error: 'internal_notes must be a string or null' },
+        { status: 400 }
+      );
     }
+
+    updates.internal_notes = b.internal_notes;
   }
 
   if (Object.keys(updates).length === 0) {
