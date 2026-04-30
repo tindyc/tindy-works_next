@@ -66,7 +66,9 @@ export async function handleSubmission({
       payload,
       fingerprint,
       ip_address: ip,
-      status: 'pending',
+      email_status: 'pending',
+      ticket_status: 'open',
+      last_activity_at: new Date().toISOString(),
     })
     .select()
     .single();
@@ -105,11 +107,11 @@ export async function handleSubmission({
 
     const { error: updateError } = await supabase
       .from('submissions')
-      .update({ status: 'sent' })
+      .update({ email_status: 'sent', last_activity_at: new Date().toISOString() })
       .eq('id', record.id);
 
     if (updateError) {
-      console.error('DB STATUS UPDATE FAILED', updateError);
+      console.error('DB EMAIL STATUS UPDATE FAILED', updateError);
     }
 
     console.log('AFTER_SEND_SUBMISSION_EMAIL', {
@@ -132,11 +134,11 @@ export async function handleSubmission({
     });
     const { error: updateError } = await supabase
       .from('submissions')
-      .update({ status: 'failed' })
+      .update({ email_status: 'failed', last_activity_at: new Date().toISOString() })
       .eq('id', record.id);
 
     if (updateError) {
-      console.error('DB STATUS UPDATE FAILED', updateError);
+      console.error('DB EMAIL STATUS UPDATE FAILED', updateError);
     }
 
     console.error('EMAIL_DELIVERY_FAILED', {
@@ -208,11 +210,11 @@ export async function handleSubmission({
       });
       const { error: updateError } = await supabase
         .from('submissions')
-        .update({ status: 'failed' })
+        .update({ email_status: 'failed', last_activity_at: new Date().toISOString() })
         .eq('id', record.id);
 
       if (updateError) {
-        console.error('DB STATUS UPDATE FAILED', updateError);
+        console.error('DB EMAIL STATUS UPDATE FAILED', updateError);
       }
     }
   } else {

@@ -110,6 +110,10 @@ body {
   font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
 }
 
+.admin-row:hover {
+  background: var(--hover-bg);
+}
+
 @layer base {
   :root {
     --font-sans: var(--font-geist-sans), "Inter", sans-serif;
