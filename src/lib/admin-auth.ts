@@ -25,7 +25,7 @@ export async function getAdminUser() {
   } = await supabase.auth.getUser();
 
   if (error || !user) return null;
-  if (user.user_metadata.role !== 'admin') return null;
+  if (user.app_metadata.role !== 'admin') return null;
 
   return user;
 }
