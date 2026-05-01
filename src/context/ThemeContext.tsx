@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from 'react';
 
 type Theme = 'light' | 'dark';
 
@@ -14,26 +14,75 @@ type ThemeContextType = {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const initialTheme = typeof document !== 'undefined' ? document.documentElement.dataset.theme : null;
-    return initialTheme === 'light' || initialTheme === 'dark' ? initialTheme : 'dark';
-  });
-  const [brightness, setBrightness] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      const savedBrightness = window.localStorage.getItem('app-brightness');
-      const parsedBrightness = savedBrightness === null ? Number.NaN : Number.parseFloat(savedBrightness);
-      if (Number.isFinite(parsedBrightness)) {
-        return parsedBrightness;
-      }
+const THEME_CHANGE_EVENT = 'tindy-theme-change';
+const BRIGHTNESS_CHANGE_EVENT = 'tindy-brightness-change';
+
+const getServerThemeSnapshot = (): Theme => 'dark';
+
+const getThemeSnapshot = (): Theme => {
+  const theme = document.documentElement.dataset.theme;
+  return theme === 'light' || theme === 'dark' ? theme : 'dark';
+};
+
+const subscribeTheme = (onStoreChange: () => void) => {
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === 'theme') {
+      onStoreChange();
     }
-    return 1;
-  });
+  };
+
+  window.addEventListener(THEME_CHANGE_EVENT, onStoreChange);
+  window.addEventListener('storage', handleStorage);
+
+  return () => {
+    window.removeEventListener(THEME_CHANGE_EVENT, onStoreChange);
+    window.removeEventListener('storage', handleStorage);
+  };
+};
+
+const getServerBrightnessSnapshot = () => 1;
+
+const getBrightnessSnapshot = () => {
+  const savedBrightness = window.localStorage.getItem('app-brightness');
+  const parsedBrightness = savedBrightness === null ? Number.NaN : Number.parseFloat(savedBrightness);
+  return Number.isFinite(parsedBrightness) ? parsedBrightness : 1;
+};
+
+const subscribeBrightness = (onStoreChange: () => void) => {
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === 'app-brightness') {
+      onStoreChange();
+    }
+  };
+
+  window.addEventListener(BRIGHTNESS_CHANGE_EVENT, onStoreChange);
+  window.addEventListener('storage', handleStorage);
+
+  return () => {
+    window.removeEventListener(BRIGHTNESS_CHANGE_EVENT, onStoreChange);
+    window.removeEventListener('storage', handleStorage);
+  };
+};
+
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, getServerThemeSnapshot);
+  const brightness = useSyncExternalStore(subscribeBrightness, getBrightnessSnapshot, getServerBrightnessSnapshot);
+
+  const setTheme = useCallback((nextTheme: Theme) => {
+    localStorage.setItem('theme', nextTheme);
+    document.documentElement.dataset.theme = nextTheme;
+    window.dispatchEvent(new Event(THEME_CHANGE_EVENT));
+  }, []);
+
+  const setBrightness = useCallback((nextBrightness: number) => {
+    localStorage.setItem('app-brightness', nextBrightness.toString());
+    window.dispatchEvent(new Event(BRIGHTNESS_CHANGE_EVENT));
+  }, []);
 
   // Keep the pre-hydration theme source of truth in sync.
   useEffect(() => {
     localStorage.setItem('theme', theme);
-    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.dataset.theme = theme;
   }, [theme]);
 
   // Handle brightness as a pure visual filter layer
@@ -67,12 +116,17 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return () => clearTimeout(t);
   }, [brightness, theme]);
 
-  const toggleTheme = () => {
-    setTheme(currentTheme => currentTheme === 'dark' ? 'light' : 'dark');
-  };
+  const toggleTheme = useCallback(() => {
+    setTheme(theme === 'dark' ? 'light' : 'dark');
+  }, [setTheme, theme]);
+
+  const value = useMemo(
+    () => ({ theme, setTheme, toggleTheme, brightness, setBrightness }),
+    [brightness, setBrightness, setTheme, theme, toggleTheme],
+  );
 
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme, brightness, setBrightness }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
