@@ -52,6 +52,18 @@ temp/
 .DS_Store
 
 
+# custom project folders / local output
+tmp/
+temp/
+test-results/
+
+# local overrides / agent notes
+*.local
 CLAUDE.md
 AGENTS.md
-scripts/
+
+# logs
+*.log
+
+# local test output
+test-results/

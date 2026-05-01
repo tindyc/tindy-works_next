@@ -5,6 +5,7 @@ import {
   isNullableString,
   isTicketStatus,
 } from '@/lib/admin-validation';
+import { normalizeOptionalDate } from '@/lib/admin-submission-validation';
 
 export async function GET(
   _request: Request,
@@ -77,6 +78,14 @@ export async function PATCH(
     }
 
     updates.internal_notes = b.internal_notes;
+  }
+
+  if ('due_at' in b) {
+    try {
+      updates.due_at = normalizeOptionalDate(b.due_at);
+    } catch {
+      return Response.json({ error: 'Invalid date value' }, { status: 400 });
+    }
   }
 
   if (Object.keys(updates).length === 0) {

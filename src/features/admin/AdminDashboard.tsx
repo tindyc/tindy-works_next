@@ -1,8 +1,14 @@
 'use client';
 
+import Link from 'next/link';
+import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import type { FormEvent } from 'react';
 import type { SubmissionRecord } from '@/lib/submission-emails';
+import {
+  formatSubmissionEmailStatus,
+  type SubmissionEmailStatus,
+} from '@/lib/submission-status';
 
 const QUEUES = [
   { label: 'Open', value: 'open' },
@@ -41,6 +47,28 @@ function relativeTime(iso: string) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
+function formatSource(source: SubmissionRecord['source']) {
+  return source === 'admin_manual' ? 'manual' : 'public';
+}
+
+function canRetryEmail(status: SubmissionEmailStatus) {
+  return status === 'failed' || status === 'pending';
+}
+
+function formatOptionalDate(iso?: string | null) {
+  return iso ? new Date(iso).toLocaleString() : 'None';
+}
+
+function toDateTimeLocalValue(iso?: string | null) {
+  if (!iso) return '';
+
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return offsetDate.toISOString().slice(0, 16);
+}
+
 function StatusBadge({ status }: { status: string }) {
   const color =
     status === 'resolved'
@@ -60,7 +88,7 @@ function StatusBadge({ status }: { status: string }) {
         textTransform: 'uppercase',
       }}
     >
-      {status}
+      {formatSubmissionEmailStatus(status)}
     </span>
   );
 }
@@ -121,6 +149,8 @@ export function AdminDashboard({
   const [actionMsg, setActionMsg] = useState<ActionMsg | null>(null);
   const [notes, setNotes] = useState('');
   const [notesChanged, setNotesChanged] = useState(false);
+  const [dueAt, setDueAt] = useState('');
+  const [dueAtChanged, setDueAtChanged] = useState(false);
 
   // Plain async function — called only from event handlers, never from an effect.
   // Initial data comes from the initialSubmissions prop (server-seeded).
@@ -150,7 +180,7 @@ export function AdminDashboard({
 
       if (!res.ok) {
         setActionMsg({
-          text: data.error ?? 'Failed to load tickets.',
+          text: data.error ?? 'Failed to load work tickets.',
           type: 'error',
         });
         return;
@@ -208,6 +238,8 @@ export function AdminDashboard({
     setSelected(record);
     setNotes(record?.internal_notes ?? '');
     setNotesChanged(false);
+    setDueAt(toDateTimeLocalValue(record?.due_at));
+    setDueAtChanged(false);
     setActionMsg(null);
     setView('detail'); // mobile: switch to detail panel
   }
@@ -249,6 +281,22 @@ export function AdminDashboard({
       if (ok) {
         setNotesChanged(false);
         setActionMsg({ text: 'Notes saved.', type: 'success' });
+      } else {
+        setActionMsg({ text: (data as Record<string, string>)?.error ?? 'Save failed.', type: 'error' });
+      }
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function saveDueDate() {
+    setActionLoading(true);
+    setActionMsg(null);
+    try {
+      const { ok, data } = await patchSelected({ due_at: dueAt || null });
+      if (ok) {
+        setDueAtChanged(false);
+        setActionMsg({ text: 'Due date saved.', type: 'success' });
       } else {
         setActionMsg({ text: (data as Record<string, string>)?.error ?? 'Save failed.', type: 'error' });
       }
@@ -302,6 +350,20 @@ export function AdminDashboard({
 
   return (
     <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[var(--border-subtle)] px-4 py-3">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="ui-nav-item ui-nav-item-active min-h-9 px-3 py-1.5">
+            Work
+          </span>
+          <Link href="/admin/personal" className="ui-button min-h-9 px-3 py-1.5">
+            Personal
+          </Link>
+        </div>
+        <Link href="/admin/work/new" className="ui-button ui-button-strong min-h-9 px-3 py-1.5 text-sm">
+          <Plus size={16} />
+          Add Work Ticket
+        </Link>
+      </div>
 
       {/* ── Mobile / tablet: horizontal queue tab bar (hidden lg+) ────────── */}
       <div
@@ -372,7 +434,7 @@ export function AdminDashboard({
               color: 'var(--text-secondary)',
             }}
           >
-            {QUEUES.find((q) => q.value === queue)?.label} — {pagination.total}
+            Work Tickets · {QUEUES.find((q) => q.value === queue)?.label} — {pagination.total}
             {activeFilterSummary && (
               <div style={{ marginTop: '0.25rem', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
                 {activeFilterSummary}
@@ -450,7 +512,7 @@ export function AdminDashboard({
                 className="p-8 text-center"
                 style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}
               >
-                No tickets
+                No work tickets
               </div>
             ) : (
               submissions.map((s) => (
@@ -501,10 +563,32 @@ export function AdminDashboard({
                     {s.name ? `From ${s.name}` : s.email ?? 'Anonymous'}
                   </p>
 
+                  {s.due_at && (
+                    <p
+                      className="truncate mb-2"
+                      style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}
+                    >
+                      Due {new Date(s.due_at).toLocaleDateString()}
+                    </p>
+                  )}
+
                   <div className="flex gap-1.5 flex-wrap">
                     <StatusBadge status={s.ticket_status} />
                     <span style={{ opacity: 0.75 }}>
                       <StatusBadge status={s.email_status} />
+                    </span>
+                    <span
+                      style={{
+                        fontSize: '0.65rem',
+                        padding: '0.125rem 0.5rem',
+                        borderRadius: '9999px',
+                        border: '1px solid var(--border-subtle)',
+                        color: 'var(--text-muted)',
+                        letterSpacing: '0.04em',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {formatSource(s.source)}
                     </span>
                     <span
                       style={{
@@ -633,7 +717,7 @@ export function AdminDashboard({
               className="flex flex-1 items-center justify-center"
               style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}
             >
-              Select a ticket
+              Select a work ticket
             </div>
           ) : (
             <div className="p-6">
@@ -701,10 +785,15 @@ export function AdminDashboard({
                       [
                         ['Requester', requester],
                         ['Ticket Status', selected.ticket_status],
-                        ['Email Status', selected.email_status],
+                        ['Email Status', formatSubmissionEmailStatus(selected.email_status)],
+                        ['Source', formatSource(selected.source)],
                         ['Type', selected.type],
+                        ['Due', formatOptionalDate(selected.due_at)],
                         ['Created', new Date(selected.created_at).toLocaleString()],
-                      ] as [string, string][]
+                        selected.source === 'admin_manual' && selected.created_by_email
+                          ? ['Created By', selected.created_by_email]
+                          : null,
+                      ].filter(Boolean) as [string, string][]
                     ).map(([label, value]) => (
                       <div key={label}>
                         <dt
@@ -722,6 +811,75 @@ export function AdminDashboard({
                       </div>
                     ))}
                   </dl>
+                </div>
+
+                {/* Deadline */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h3
+                    style={{
+                      fontSize: '0.65rem',
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      color: 'var(--text-muted)',
+                      marginBottom: '0.5rem',
+                    }}
+                  >
+                    Due Date
+                  </h3>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <input
+                      type="datetime-local"
+                      value={dueAt}
+                      onChange={(e) => {
+                        setDueAt(e.target.value);
+                        setDueAtChanged(true);
+                      }}
+                      style={{
+                        ...controlStyle,
+                        minHeight: '2.25rem',
+                        minWidth: '14rem',
+                      }}
+                    />
+                    {selected.due_at && (
+                      <button
+                        onClick={() => {
+                          setDueAt('');
+                          setDueAtChanged(true);
+                        }}
+                        disabled={actionLoading}
+                        style={{
+                          padding: '0.5rem 0.75rem',
+                          fontSize: '0.8rem',
+                          border,
+                          borderRadius: '0.375rem',
+                          cursor: actionLoading ? 'not-allowed' : 'pointer',
+                          background: 'transparent',
+                          color: 'var(--text-primary)',
+                          opacity: actionLoading ? 0.6 : 1,
+                        }}
+                      >
+                        Clear
+                      </button>
+                    )}
+                    {dueAtChanged && (
+                      <button
+                        onClick={saveDueDate}
+                        disabled={actionLoading}
+                        style={{
+                          padding: '0.5rem 0.75rem',
+                          fontSize: '0.8rem',
+                          background: 'var(--text-primary)',
+                          color: 'var(--bg-base)',
+                          border: 'none',
+                          borderRadius: '0.375rem',
+                          cursor: actionLoading ? 'not-allowed' : 'pointer',
+                          opacity: actionLoading ? 0.6 : 1,
+                        }}
+                      >
+                        Save Due Date
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Message */}
@@ -853,22 +1011,35 @@ export function AdminDashboard({
 
                 {/* Actions */}
                 <div className="flex flex-wrap gap-2.5 items-center">
-                  <button
-                    onClick={retryEmail}
-                    disabled={actionLoading}
-                    style={{
-                      padding: '0.5rem 1rem',
-                      fontSize: '0.875rem',
-                      border,
-                      borderRadius: '0.375rem',
-                      cursor: actionLoading ? 'not-allowed' : 'pointer',
-                      background: 'transparent',
-                      color: 'var(--text-primary)',
-                      opacity: actionLoading ? 0.6 : 1,
-                    }}
-                  >
-                    Retry Email
-                  </button>
+                  {canRetryEmail(selected.email_status) && (
+                    <button
+                      onClick={retryEmail}
+                      disabled={actionLoading}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem',
+                        border,
+                        borderRadius: '0.375rem',
+                        cursor: actionLoading ? 'not-allowed' : 'pointer',
+                        background: 'transparent',
+                        color: 'var(--text-primary)',
+                        opacity: actionLoading ? 0.6 : 1,
+                      }}
+                    >
+                      Retry Email
+                    </button>
+                  )}
+
+                  {selected.email_status === 'not_required' && (
+                    <span
+                      style={{
+                        fontSize: '0.8rem',
+                        color: 'var(--text-muted)',
+                      }}
+                    >
+                      No email required for this ticket.
+                    </span>
+                  )}
 
                   {selected.ticket_status !== 'in-progress' && (
                     <button

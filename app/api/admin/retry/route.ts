@@ -1,6 +1,9 @@
 import { supabase } from '@/lib/supabase';
 import { getAdminUser } from '@/lib/admin-auth';
-import { sendSubmissionEmailsFromRecord } from '@/lib/submission-emails';
+import {
+  sendSubmissionRetryEmailsFromRecord,
+  type SubmissionRecord,
+} from '@/lib/submission-emails';
 
 export async function POST(request: Request) {
   const user = await getAdminUser();
@@ -28,8 +31,16 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Submission not found' }, { status: 404 });
   }
 
+  const record = submission as SubmissionRecord;
+  if (record.email_status === 'not_required') {
+    return Response.json(
+      { error: 'Email retry is not required for this ticket' },
+      { status: 400 }
+    );
+  }
+
   try {
-    await sendSubmissionEmailsFromRecord(submission);
+    await sendSubmissionRetryEmailsFromRecord(record);
 
     await supabase
       .from('submissions')

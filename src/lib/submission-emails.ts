@@ -1,6 +1,11 @@
-import { sendSubmissionEmail } from './email';
-import { formatContactEmail, formatSupportEmail } from './email-templates';
+import { sendSubmissionEmail, type SubmissionEmail } from './email';
+import {
+  formatContactEmail,
+  formatSupportEmail,
+  formatUserConfirmationEmail,
+} from './email-templates';
 import type { TicketStatus } from './admin-validation';
+import type { SubmissionEmailStatus } from './submission-status';
 import { getIntentConfig, isIntent } from '@/features/support/types/intent';
 
 export type SubmissionRecord = {
@@ -17,14 +22,18 @@ export type SubmissionRecord = {
   preview?: string | null;
   metadata?: Record<string, string> | null;
   payload?: Record<string, string> | null;
-  email_status: 'pending' | 'sent' | 'failed';
+  email_status: SubmissionEmailStatus;
   ticket_status: TicketStatus;
+  source?: 'public_form' | 'admin_manual';
+  created_by?: string | null;
+  created_by_email?: string | null;
+  due_at?: string | null;
   internal_notes?: string | null;
   created_at: string;
   last_activity_at?: string | null;
 };
 
-export async function sendSubmissionEmailsFromRecord(record: SubmissionRecord) {
+function buildSubmissionOwnerEmail(record: SubmissionRecord) {
   const contact = {
     email: record.email ?? '',
     contactValue:
@@ -46,7 +55,7 @@ export async function sendSubmissionEmailsFromRecord(record: SubmissionRecord) {
       record.intent !== undefined &&
       record.intent !== 'general');
 
-  const ownerEmail = isSupport
+  return isSupport
     ? formatSupportEmail({
         requestId: record.request_id,
         payload,
@@ -61,7 +70,53 @@ export async function sendSubmissionEmailsFromRecord(record: SubmissionRecord) {
         payload,
         contact,
         content: record.content,
+        metadata: record.metadata ?? undefined,
       });
+}
 
-  return sendSubmissionEmail(ownerEmail);
+async function sendAndAssert(email: SubmissionEmail) {
+  const result = await sendSubmissionEmail(email);
+  if (result?.error) {
+    throw new Error(
+      typeof result.error === 'string'
+        ? result.error
+        : JSON.stringify(result.error)
+    );
+  }
+
+  return result;
+}
+
+export async function sendSubmissionEmailsFromRecord(record: SubmissionRecord) {
+  return sendSubmissionEmail(buildSubmissionOwnerEmail(record));
+}
+
+export async function sendSubmissionRetryEmailsFromRecord(
+  record: SubmissionRecord
+) {
+  await sendAndAssert(buildSubmissionOwnerEmail(record));
+
+  if (record.payload?.sendConfirmationEmail !== 'true') return;
+
+  const email = record.email?.trim();
+  if (!email) {
+    throw new Error(
+      'Client email is required to retry confirmation email for this ticket'
+    );
+  }
+
+  const isContact =
+    record.type === 'contact' ||
+    record.intent === 'general' ||
+    record.category === null;
+
+  return sendAndAssert(
+    formatUserConfirmationEmail({
+      requestId: record.request_id,
+      email,
+      name: record.name ?? undefined,
+      type: isContact ? 'contact' : 'support',
+      preview: record.preview ?? undefined,
+    })
+  );
 }

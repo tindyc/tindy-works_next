@@ -28,7 +28,7 @@ export default function LoginPage() {
       if (authError) {
         setError(authError.message);
       } else {
-        router.push('/admin');
+        router.push('/admin/work');
         router.refresh();
       }
     } finally {

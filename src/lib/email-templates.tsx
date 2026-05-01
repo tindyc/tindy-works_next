@@ -16,6 +16,7 @@ export type ContactEmailInput = {
   payload: TemplatePayload;
   contact: ContactDetails;
   content: string;
+  metadata?: Record<string, string>;
   timestamp?: string;
 };
 
